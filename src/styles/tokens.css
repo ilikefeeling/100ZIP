@@ -18,10 +18,13 @@
 
   /* ── 3. Semantic (상태) ── */
   --color-success-600: #2F8F5B;
+  --color-success-100: #E6F4EA;
   --color-neutral-500: #8A8F98;
   --color-warning-600: #D98A2B;
+  --color-warning-100: #FDF3E1;
   --color-danger-600:  #C6483F;
   --color-info-600:    #3A6EA5;
+  --color-info-100:    #EBF3FA;
 
   /* ── 4. Text ── */
   --color-text-primary:    #1B1B1B;
@@ -40,6 +43,24 @@
   --font-body:             600 20px/1.6  var(--font-family-base);
   --font-caption:          600 18px/1.5  var(--font-family-base);
   --font-numeric-emphasis: 700 44px/1.2  var(--font-family-base);
+
+  /* ── 6. Spacing ── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* ── 7. Radius ── */
+  --radius-card:   16px;
+  --radius-button: 12px;
+  --radius-badge:  999px;
+
+  /* ── 8. Size ── */
+  --size-touch-min:    48px;
+  --size-button-height: 56px;
+  --size-numpad-key:   64px;
 }
 
 html[data-font-scale="large"] {
@@ -60,21 +81,4 @@ html[data-font-scale="xlarge"] {
   --font-body:             600 28px/1.6  var(--font-family-base);
   --font-caption:          600 24px/1.5  var(--font-family-base);
   --font-numeric-emphasis: 700 56px/1.2  var(--font-family-base);
-  /* ── 6. Spacing ── */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-6: 24px;
-  --space-8: 32px;
-
-  /* ── 7. Radius ── */
-  --radius-card:   16px;
-  --radius-button: 12px;
-  --radius-badge:  999px;
-
-  /* ── 8. Size ── */
-  --size-touch-min:    48px;
-  --size-button-height: 56px;
-  --size-numpad-key:   64px;
 }
