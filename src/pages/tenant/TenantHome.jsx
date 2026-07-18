@@ -35,6 +35,7 @@ export default function TenantHome() {
   // 연결된 계약이 없는 경우
   if (!myContract) {
     return (
+      <div className="page">
         <div className="page-content tenant-home--empty">
           <div className="tenant-home__greeting" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '24px' }}>
             <div>
