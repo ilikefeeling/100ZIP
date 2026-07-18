@@ -52,6 +52,7 @@ export default function RoleSelect() {
         <span className="role-select__label">중개사예요</span>
         <span className="role-select__desc">공실 정보와 중개 의뢰를 확인해요</span>
       </button>
+      </div>
     </div>
   );
 }
