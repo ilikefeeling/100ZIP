@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import usePropertyStore from '../../stores/propertyStore';
 import useAuthStore from '../../stores/authStore';
@@ -56,6 +56,17 @@ export default function BuildingRegister() {
   // 임차료 수납 계좌
   const [rentBank, setRentBank] = useState('');
   const [rentAccount, setRentAccount] = useState('');
+  const [selectedAccountId, setSelectedAccountId] = useState('');
+
+  // 컴포넌트 마운트 시 기본 계좌가 있으면 세팅
+  useEffect(() => {
+    if (user?.accounts?.length > 0) {
+      const defaultAcc = user.accounts.find(a => a.isDefault) || user.accounts[0];
+      setSelectedAccountId(defaultAcc.id);
+      setRentBank(defaultAcc.bank);
+      setRentAccount(defaultAcc.accountNumber);
+    }
+  }, [user]);
 
   // 사진 업로드
   const [mainPhoto, setMainPhoto] = useState(null);
@@ -344,27 +355,63 @@ export default function BuildingRegister() {
           <div className="bld-reg__step" key="step6">
             <h2 className="bld-reg__question">임차료 수납 계좌 등록</h2>
             <div className="bld-reg__inputs" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '0 16px' }}>
-              <div className="bld-reg__label-input" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontSize: '20px', color: 'var(--color-text-secondary)' }}>은행명</label>
-                <input
-                  type="text"
-                  className="bld-reg__text-input"
-                  placeholder="예: 신한은행, 카카오뱅크"
-                  value={rentBank}
-                  onChange={(e) => setRentBank(e.target.value)}
-                  autoFocus
-                />
-              </div>
-              <div className="bld-reg__label-input" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontSize: '20px', color: 'var(--color-text-secondary)' }}>임차료 수납 계좌번호</label>
-                <input
-                  className="bld-reg__text-input"
-                  type="text"
-                  placeholder="'-' 없이 숫자만 입력"
-                  value={rentAccount}
-                  onChange={(e) => setRentAccount(e.target.value)}
-                />
-              </div>
+              
+              {user?.accounts?.length > 0 && (
+                <div className="bld-reg__label-input" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '20px', color: 'var(--color-text-secondary)' }}>내 계좌 불러오기</label>
+                  <select 
+                    className="bld-reg__text-input"
+                    value={selectedAccountId}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSelectedAccountId(val);
+                      if (val === 'new') {
+                        setRentBank('');
+                        setRentAccount('');
+                      } else {
+                        const acc = user.accounts.find(a => a.id === val);
+                        if (acc) {
+                          setRentBank(acc.bank);
+                          setRentAccount(acc.accountNumber);
+                        }
+                      }
+                    }}
+                  >
+                    {user.accounts.map(acc => (
+                      <option key={acc.id} value={acc.id}>
+                        {acc.bank} {acc.accountNumber} ({acc.holder})
+                      </option>
+                    ))}
+                    <option value="new">직접 입력하기</option>
+                  </select>
+                </div>
+              )}
+
+              {(!user?.accounts?.length || selectedAccountId === 'new') && (
+                <>
+                  <div className="bld-reg__label-input" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label style={{ fontSize: '20px', color: 'var(--color-text-secondary)' }}>은행명</label>
+                    <input
+                      type="text"
+                      className="bld-reg__text-input"
+                      placeholder="예: 신한은행, 카카오뱅크"
+                      value={rentBank}
+                      onChange={(e) => setRentBank(e.target.value)}
+                      autoFocus
+                    />
+                  </div>
+                  <div className="bld-reg__label-input" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label style={{ fontSize: '20px', color: 'var(--color-text-secondary)' }}>임차료 수납 계좌번호</label>
+                    <input
+                      className="bld-reg__text-input"
+                      type="text"
+                      placeholder="'-' 없이 숫자만 입력"
+                      value={rentAccount}
+                      onChange={(e) => setRentAccount(e.target.value)}
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}

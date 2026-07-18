@@ -23,7 +23,7 @@ const useAuthStore = create((set, get) => ({
           const userData = userDoc.data();
           set({
             isLoggedIn: true,
-            user: { uid: firebaseUser.uid, email: firebaseUser.email, ...userData },
+            user: { uid: firebaseUser.uid, email: firebaseUser.email, photoURL: firebaseUser.photoURL, ...userData },
             role: userData.role || null,
             isAuthReady: true,
             isFirstLogin: false,
@@ -31,7 +31,7 @@ const useAuthStore = create((set, get) => ({
         } else {
           set({
             isLoggedIn: true,
-            user: { uid: firebaseUser.uid, email: firebaseUser.email },
+            user: { uid: firebaseUser.uid, email: firebaseUser.email, photoURL: firebaseUser.photoURL },
             role: null,
             isAuthReady: true,
           });
@@ -62,40 +62,71 @@ const useAuthStore = create((set, get) => ({
       const firebaseUser = result.user;
       const additionalInfo = getAdditionalUserInfo(result);
 
+      console.log('Firebase User photoURL:', firebaseUser.photoURL);
+      console.log('Additional Info:', additionalInfo);
+
       // 사용자 정보가 Firestore에 있는지 확인
       const userDocRef = doc(db, 'users', firebaseUser.uid);
       const userDoc = await getDoc(userDocRef);
 
+      const kakaoProfile = additionalInfo?.profile?.kakao_account?.profile || additionalInfo?.profile?.properties || additionalInfo?.profile;
+
       // 카카오 닉네임 가져오기 시도
       let currentName = '카카오 유저';
-      if (additionalInfo && additionalInfo.profile && additionalInfo.profile.nickname) {
-        currentName = additionalInfo.profile.nickname;
-      } else if (additionalInfo && additionalInfo.profile && additionalInfo.profile.name) {
-        currentName = additionalInfo.profile.name;
+      if (kakaoProfile?.nickname) {
+        currentName = kakaoProfile.nickname;
+      } else if (kakaoProfile?.name) {
+        currentName = kakaoProfile.name;
       } else if (firebaseUser.displayName) {
         currentName = firebaseUser.displayName;
-      } else if (firebaseUser.providerData && firebaseUser.providerData.length > 0 && firebaseUser.providerData[0].displayName) {
+      } else if (firebaseUser.providerData?.[0]?.displayName) {
         currentName = firebaseUser.providerData[0].displayName;
+      }
+
+      // 프로필 사진 가져오기 시도
+      let currentPhotoURL = firebaseUser.photoURL || '';
+      if (kakaoProfile?.profile_image_url) {
+        currentPhotoURL = kakaoProfile.profile_image_url;
+      } else if (kakaoProfile?.profile_image) {
+        currentPhotoURL = kakaoProfile.profile_image;
+      } else if (kakaoProfile?.thumbnail_image_url) {
+        currentPhotoURL = kakaoProfile.thumbnail_image_url;
+      } else if (kakaoProfile?.thumbnail_image) {
+        currentPhotoURL = kakaoProfile.thumbnail_image;
+      } else if (kakaoProfile?.picture) { // OIDC 표준
+        currentPhotoURL = kakaoProfile.picture;
       }
 
       if (!userDoc.exists()) {
         // 최초 가입인 경우 초기 정보 저장
         await setDoc(userDocRef, {
           name: currentName,
+          photoURL: currentPhotoURL,
           email: firebaseUser.email || '',
           // phone 필드는 이후 PhoneVerification 에서 입력받아 업데이트
           role,
           createdAt: new Date().toISOString()
         });
         set({ isFirstLogin: true });
-        return { ...firebaseUser, name: currentName, phone: null, role };
+        return { ...firebaseUser, name: currentName, photoURL: currentPhotoURL, phone: null, role };
       }
       
       const userData = userDoc.data();
+      let updates = {};
+
       // 기존 이름이 '카카오 유저'인데 새로 닉네임을 가져왔다면 업데이트
       if (userData.name === '카카오 유저' && currentName !== '카카오 유저') {
-        await setDoc(userDocRef, { name: currentName }, { merge: true });
+        updates.name = currentName;
         userData.name = currentName;
+      }
+      // photoURL 업데이트 (없거나 다를 경우)
+      if (currentPhotoURL && userData.photoURL !== currentPhotoURL) {
+        updates.photoURL = currentPhotoURL;
+        userData.photoURL = currentPhotoURL;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        await setDoc(userDocRef, updates, { merge: true });
       }
 
       return { ...firebaseUser, ...userData };
@@ -126,6 +157,20 @@ const useAuthStore = create((set, get) => ({
         role, 
         user: { ...user, ...userData, role },
         isFirstLogin: false 
+      });
+    }
+  },
+
+  updateUserProfile: async (profileData) => {
+    const user = get().user;
+    if (user && user.uid) {
+      await setDoc(doc(db, 'users', user.uid), {
+        ...profileData,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+      
+      set({ 
+        user: { ...user, ...profileData }
       });
     }
   },

@@ -21,6 +21,7 @@ const UserManual = lazy(() => import('./pages/common/UserManual'));
 
 // Landlord pages
 const LandlordHome = lazy(() => import('./pages/landlord/LandlordHome'));
+const LandlordProfile = lazy(() => import('./pages/landlord/LandlordProfile'));
 const BuildingRegister = lazy(() => import('./pages/landlord/BuildingRegister'));
 const BuildingSettings = lazy(() => import('./pages/landlord/BuildingSettings'));
 const UnitList = lazy(() => import('./pages/landlord/UnitList'));
@@ -107,6 +108,7 @@ export default function App() {
 
             {/* ── 임대인 ── */}
             <Route path="/landlord/home" element={<LandlordHome />} />
+            <Route path="/landlord/profile" element={<LandlordProfile />} />
             <Route path="/landlord/buildings/new" element={<BuildingRegister />} />
             <Route path="/landlord/buildings/:buildingId/settings" element={<BuildingSettings />} />
             <Route path="/landlord/buildings/:buildingId/units" element={<UnitList />} />

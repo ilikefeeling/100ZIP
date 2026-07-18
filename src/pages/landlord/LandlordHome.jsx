@@ -111,41 +111,144 @@ export default function LandlordHome() {
           </div>
         </div>
 
-        {/* 주거래 중개사 파트너 관리 */}
-        <div style={{ marginBottom: '24px' }}>
+        {/* 내 정보 관리 */}
+        <div style={{ marginBottom: '12px' }}>
           <div 
-            onClick={() => navigate('/landlord/brokers')}
+            onClick={() => navigate('/landlord/profile')}
             style={{ 
-              background: 'linear-gradient(135deg, var(--color-primary-50), var(--color-primary-100))',
-              border: '1px solid var(--color-primary-200)',
+              background: 'linear-gradient(135deg, var(--color-primary-600), #4834D4)',
+              border: 'none',
               borderRadius: '16px',
               padding: '16px',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
               cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+              boxShadow: '0 4px 12px rgba(108, 92, 231, 0.3)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ 
+                fontSize: '24px', 
+                background: 'rgba(255,255,255,0.2)', 
+                borderRadius: '50%', 
+                width: '44px', 
+                height: '44px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                overflow: 'hidden'
+              }}>
+                {user?.photoURL ? (
+                  <img 
+                    src={user.photoURL} 
+                    alt="Profile" 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      if (e.target.parentElement) {
+                        e.target.parentElement.innerHTML = '👤';
+                      }
+                    }}
+                  />
+                ) : (
+                  '👤'
+                )}
+              </div>
+              <div>
+                <div style={{ fontSize: '16px', fontWeight: 'bold', color: 'white' }}>
+                  내 정보 관리
+                </div>
+                <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginTop: '4px' }}>
+                  연락처, 수납 계좌, 사업자 정보 설정
+                </div>
+              </div>
+            </div>
+            <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '18px' }}>
+              →
+            </div>
+          </div>
+        </div>
+
+        {/* 건물 등록 & 주거래 중개사 등록 */}
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+          {/* 건물 등록 */}
+          <div 
+            onClick={() => navigate('/landlord/buildings/new')}
+            style={{ 
+              flex: 1,
+              background: 'linear-gradient(135deg, var(--color-info-600), #2A5A8C)',
+              border: 'none',
+              borderRadius: '16px',
+              padding: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(58,110,165,0.3)'
             }}
           >
             <div>
-              <div style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--color-primary-800)', marginBottom: '4px' }}>
-                주거래 중개사 파트너 🤝
+              <div style={{ fontSize: '16px', fontWeight: 'bold', color: 'white', marginBottom: '4px' }}>
+                건물 등록 🏗️
               </div>
-              <div style={{ fontSize: '14px', color: 'var(--color-primary-700)' }}>
-                {user?.brokers?.length > 0 
-                  ? `${user.brokers.length}곳의 중개사와 거래중입니다` 
-                  : '공실을 전담할 중개사를 등록하세요'}
+              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', wordBreak: 'keep-all' }}>
+                새로운 건물을 추가하세요
               </div>
             </div>
             <div style={{ 
-              background: 'white', 
+              alignSelf: 'flex-end',
+              background: 'rgba(255,255,255,0.2)', 
               borderRadius: '50%', 
-              width: '32px', 
-              height: '32px', 
+              width: '28px', 
+              height: '28px', 
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center',
-              color: 'var(--color-primary)'
+              color: 'white',
+              marginTop: '12px'
+            }}>
+              +
+            </div>
+          </div>
+
+          {/* 주거래 중개사 등록 */}
+          <div 
+            onClick={() => navigate('/landlord/brokers')}
+            style={{ 
+              flex: 1,
+              background: 'linear-gradient(135deg, var(--color-warning-600), #B87220)',
+              border: 'none',
+              borderRadius: '16px',
+              padding: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(217,138,43,0.3)'
+            }}
+          >
+            <div>
+              <div style={{ fontSize: '16px', fontWeight: 'bold', color: 'white', marginBottom: '4px' }}>
+                주거래 중개사 등록 🤝
+              </div>
+              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', wordBreak: 'keep-all' }}>
+                {user?.brokers?.length > 0 
+                  ? `${user.brokers.length}곳과 거래중` 
+                  : '공실 전담 중개사 등록'}
+              </div>
+            </div>
+            <div style={{ 
+              alignSelf: 'flex-end',
+              background: 'rgba(255,255,255,0.2)', 
+              borderRadius: '50%', 
+              width: '28px', 
+              height: '28px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              color: 'white',
+              marginTop: '12px'
             }}>
               →
             </div>
@@ -193,7 +296,7 @@ export default function LandlordHome() {
                           marginLeft: 'auto',
                         }}
                       >
-                        건물 상세
+                        건물 관리
                       </button>
                     </div>
                     <div className="ll-home__card-badges">
@@ -248,7 +351,7 @@ export default function LandlordHome() {
                   width: '100%'
                 }}
               >
-                앱 설치 안내 보기
+                앱 설치
               </button>
             </div>
           </Card>
