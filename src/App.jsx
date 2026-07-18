@@ -32,6 +32,7 @@ const KitWizard = lazy(() => import('./pages/landlord/KitWizard'));
 const SignedKitView = lazy(() => import('./pages/landlord/SignedKitView'));
 const RentList = lazy(() => import('./pages/landlord/RentList'));
 const RentDetail = lazy(() => import('./pages/landlord/RentDetail'));
+const RentReceipt = lazy(() => import('./pages/landlord/RentReceipt'));
 const RentAdjust = lazy(() => import('./pages/landlord/RentAdjust'));
 const MoveOutSettle = lazy(() => import('./pages/landlord/MoveOutSettle'));
 const TenantHistory = lazy(() => import('./pages/landlord/TenantHistory'));
@@ -49,6 +50,7 @@ const TenantMoveOutSettle = lazy(() => import('./pages/tenant/TenantMoveOutSettl
 // Common pages
 const Notifications = lazy(() => import('./pages/Notifications'));
 
+import InstallPwaPrompt from './components/InstallPwaPrompt';
 import { initKakao } from './utils/kakao';
 
 /**
@@ -84,6 +86,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
+      <InstallPwaPrompt />
       <BrowserRouter>
         <Suspense fallback={<Splash />}>
           <Routes>
@@ -117,6 +120,7 @@ export default function App() {
             <Route path="/landlord/contracts" element={<PlaceholderPage title="계약 관리 (Phase 3)" />} />
             <Route path="/landlord/rent" element={<RentList />} />
             <Route path="/landlord/buildings/:buildingId/units/:unitId/rent" element={<RentDetail />} />
+            <Route path="/landlord/buildings/:buildingId/units/:unitId/rent/receipt/:recordId" element={<RentReceipt />} />
             <Route path="/landlord/buildings/:buildingId/units/:unitId/rent/adjust" element={<RentAdjust />} />
             <Route path="/landlord/buildings/:buildingId/units/:unitId/move-out" element={<MoveOutSettle />} />
             <Route path="/landlord/buildings/:buildingId/units/:unitId/history" element={<TenantHistory />} />

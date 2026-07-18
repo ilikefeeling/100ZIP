@@ -1,0 +1,21 @@
+{
+  "name": "100집 (100ZIP)",
+  "short_name": "100집",
+  "description": "건물주를 위한 가장 쉬운 임대관리 및 임차인 소통 앱",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16283F",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

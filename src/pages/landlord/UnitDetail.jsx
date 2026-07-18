@@ -49,6 +49,12 @@ export default function UnitDetail() {
   };
 
   const handleResendLink = async () => {
+    const currentHour = new Date().getHours();
+    if (currentHour < 9 || currentHour >= 20) {
+      alert('09:00부터 20:00까지만 알림톡/문자 발송이 가능합니다.\n야간 발송은 수신자의 불편을 초래할 수 있어 차단됩니다.');
+      return;
+    }
+
     const inviteLink = `${window.location.origin}/invite/${buildingId}/${unitId}`;
     const tenantPhone = contract?.tenantPhone || '';
     const message = `[건물주] ${building?.name || ''} ${unit?.unitNumber || ''} 입주키트(비밀번호, 이용안내)가 도착했습니다.\n링크를 눌러 확인해 주세요.\n${inviteLink}`;
@@ -237,6 +243,12 @@ export default function UnitDetail() {
                   )}
                   {!contract.broker.isPaid && (
                     <Button variant="accent" onClick={async () => {
+                      const currentHour = new Date().getHours();
+                      if (currentHour < 9 || currentHour >= 20) {
+                        alert('09:00부터 20:00까지만 알림톡 발송이 가능합니다.\n야간 발송은 수신자의 불편을 초래할 수 있어 차단됩니다.');
+                        return;
+                      }
+
                       if(window.confirm('중개수수료 지급을 완료 처리하시겠습니까? 중개사에게 알림톡이 발송됩니다.')) {
                         await updateContract(buildingId, unitId, {
                           ...contract,
@@ -373,6 +385,12 @@ export default function UnitDetail() {
             <div className="broker-modal__actions">
               <Button variant="secondary" onClick={() => setIsBrokerModalOpen(false)}>취소</Button>
               <Button variant="primary" onClick={() => {
+                const currentHour = new Date().getHours();
+                if (currentHour < 9 || currentHour >= 20) {
+                  alert('09:00부터 20:00까지만 알림톡 발송이 가능합니다.\n야간 발송은 수신자의 불편을 초래할 수 있어 차단됩니다.');
+                  return;
+                }
+
                 if (selectedBrokers.length === 0) {
                   alert('중개사를 최소 1명 이상 선택해주세요.');
                   return;
