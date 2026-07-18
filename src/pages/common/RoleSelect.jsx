@@ -41,8 +41,8 @@ export default function RoleSelect() {
         onClick={() => handleSelect('tenant')}
       >
         <span className="role-select__icon" aria-hidden="true">🔑</span>
-        <span className="role-select__label">초대코드로 입장할게요</span>
-        <span className="role-select__desc">임대인이 보낸 링크가 있어요</span>
+        <span className="role-select__label">초대받은 임차인이에요</span>
+        <span className="role-select__desc">전달받은 코드로 입주 및 계약을 진행해요</span>
       </button>
 
       <button
