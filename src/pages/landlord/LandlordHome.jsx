@@ -43,7 +43,7 @@ export default function LandlordHome() {
               onClick={async () => {
                 if (window.confirm('로그아웃 하시겠습니까?')) {
                   await logout();
-                  navigate('/login', { replace: true });
+                  navigate('/role-select', { replace: true });
                 }
               }}
               style={{
@@ -61,7 +61,7 @@ export default function LandlordHome() {
               }}
               aria-label="로그아웃"
             >
-              <span>🚪</span>
+              <span>🚪 로그아웃</span>
             </button>
             <button
               onClick={() => navigate('/manual')}
@@ -108,6 +108,47 @@ export default function LandlordHome() {
               <span>가</span>
               <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>크게</span>
             </button>
+          </div>
+        </div>
+
+        {/* 주거래 중개사 파트너 관리 */}
+        <div style={{ marginBottom: '24px' }}>
+          <div 
+            onClick={() => navigate('/landlord/brokers')}
+            style={{ 
+              background: 'linear-gradient(135deg, var(--color-primary-50), var(--color-primary-100))',
+              border: '1px solid var(--color-primary-200)',
+              borderRadius: '16px',
+              padding: '16px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+            }}
+          >
+            <div>
+              <div style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--color-primary-800)', marginBottom: '4px' }}>
+                주거래 중개사 파트너 🤝
+              </div>
+              <div style={{ fontSize: '14px', color: 'var(--color-primary-700)' }}>
+                {user?.brokers?.length > 0 
+                  ? `${user.brokers.length}곳의 중개사와 거래중입니다` 
+                  : '공실을 전담할 중개사를 등록하세요'}
+              </div>
+            </div>
+            <div style={{ 
+              background: 'white', 
+              borderRadius: '50%', 
+              width: '32px', 
+              height: '32px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              color: 'var(--color-primary)'
+            }}>
+              →
+            </div>
           </div>
         </div>
 

@@ -36,7 +36,9 @@ const RentReceipt = lazy(() => import('./pages/landlord/RentReceipt'));
 const RentAdjust = lazy(() => import('./pages/landlord/RentAdjust'));
 const MoveOutSettle = lazy(() => import('./pages/landlord/MoveOutSettle'));
 const TenantHistory = lazy(() => import('./pages/landlord/TenantHistory'));
-const BrokerManage = lazy(() => import('./pages/landlord/BrokerManage'));
+const LandlordBrokerManage = lazy(() => import('./pages/landlord/LandlordBrokerManage'));
+const BrokerHome = lazy(() => import('./pages/broker/BrokerHome'));
+const LandlordInvite = lazy(() => import('./pages/broker/LandlordInvite'));
 
 // Tenant pages
 const TenantHome = lazy(() => import('./pages/tenant/TenantHome'));
@@ -124,11 +126,12 @@ export default function App() {
             <Route path="/landlord/buildings/:buildingId/units/:unitId/rent/adjust" element={<RentAdjust />} />
             <Route path="/landlord/buildings/:buildingId/units/:unitId/move-out" element={<MoveOutSettle />} />
             <Route path="/landlord/buildings/:buildingId/units/:unitId/history" element={<TenantHistory />} />
-            <Route path="/landlord/buildings/:buildingId/brokers" element={<BrokerManage />} />
+            <Route path="/landlord/brokers" element={<LandlordBrokerManage />} />
             <Route path="/landlord/notifications" element={<Notifications />} />
 
             {/* ── 중개사 ── */}
-            <Route path="/broker/home" element={<PlaceholderPage title="중개사 홈 (준비 중)" />} />
+            <Route path="/broker/home" element={<BrokerHome />} />
+            <Route path="/broker/landlord-invite" element={<LandlordInvite />} />
 
             {/* ── 임차인 ── */}
             <Route path="/tenant/home" element={<TenantHome />} />

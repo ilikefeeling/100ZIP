@@ -122,8 +122,8 @@ export default function BuildingRegister() {
       case 3: return totalUnits !== '' && parseInt(totalUnits) > 0;
       case 4: return true; 
       case 5: return true; 
-      case 6: return rentBank.trim().length > 0 && rentAccount.trim().length > 0; // 수납 계좌는 필수 입력 권장
-      case 7: return true; // 사진은 선택
+      case 6: return rentBank.trim().length > 0 && rentAccount.trim().length > 0;
+      case 7: return true;
       default: return false;
     }
   };
@@ -342,8 +342,7 @@ export default function BuildingRegister() {
         {/* Step 6: 수납 계좌 */}
         {step === 6 && (
           <div className="bld-reg__step" key="step6">
-            <h2 className="bld-reg__question">임차료를 받을 계좌를 등록해주세요</h2>
-            <p className="bld-reg__hint" style={{ textAlign: 'center', marginBottom: '24px' }}>건물별로 월세를 입금받을 기본 계좌입니다.</p>
+            <h2 className="bld-reg__question">임차료 수납 계좌 등록</h2>
             <div className="bld-reg__inputs" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '0 16px' }}>
               <div className="bld-reg__label-input" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <label style={{ fontSize: '20px', color: 'var(--color-text-secondary)' }}>은행명</label>
@@ -357,11 +356,11 @@ export default function BuildingRegister() {
                 />
               </div>
               <div className="bld-reg__label-input" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontSize: '20px', color: 'var(--color-text-secondary)' }}>계좌번호</label>
+                <label style={{ fontSize: '20px', color: 'var(--color-text-secondary)' }}>임차료 수납 계좌번호</label>
                 <input
-                  type="text"
                   className="bld-reg__text-input"
-                  placeholder="예: 110-123-456789 (숫자 및 하이픈)"
+                  type="text"
+                  placeholder="'-' 없이 숫자만 입력"
                   value={rentAccount}
                   onChange={(e) => setRentAccount(e.target.value)}
                 />

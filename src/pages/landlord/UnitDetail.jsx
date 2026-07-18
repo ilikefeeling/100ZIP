@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import usePropertyStore from '../../stores/propertyStore';
+import useAuthStore from '../../stores/authStore';
 import TopBar from '../../components/TopBar';
 import Card from '../../components/Card';
 import CurrencyDisplay from '../../components/CurrencyDisplay';
@@ -22,6 +23,8 @@ export default function UnitDetail() {
   const updateUnit = usePropertyStore((s) => s.updateUnit);
   const terminateContract = usePropertyStore((s) => s.terminateContract);
   const unit = building?.units?.find((u) => u.id === unitId);
+  
+  const user = useAuthStore((s) => s.user);
   const [isBrokerModalOpen, setIsBrokerModalOpen] = useState(false);
   const [selectedBrokers, setSelectedBrokers] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -236,18 +239,17 @@ export default function UnitDetail() {
               <Button
                 variant="secondary"
                 onClick={() => {
-                  if (!building?.brokers || building.brokers.length === 0) {
-                    if (window.confirm('등록된 단골 중개사가 없습니다.\n단골 중개사 관리 페이지로 이동하시겠습니까?')) {
-                      navigate(`/landlord/buildings/${buildingId}/brokers`);
+                  if (!user?.brokers || user.brokers.length === 0) {
+                    if (window.confirm('등록된 주거래 중개사가 없습니다.\n주거래 중개사를 먼저 등록하시겠습니까?')) {
+                      navigate(`/landlord/brokers`);
                     }
                   } else {
                     setIsBrokerModalOpen(true);
-                    // 기본으로 전체 선택
-                    setSelectedBrokers(building.brokers.map(b => b.id));
+                    setSelectedBrokers(user.brokers.map(b => b.id || b.phone));
                   }
                 }}
               >
-                단골 중개사들에게 방 내놓기
+                주거래 중개사에게 방 내놓기
               </Button>
             </div>
           ) : (
@@ -471,26 +473,29 @@ export default function UnitDetail() {
       {isBrokerModalOpen && (
         <div className="broker-modal-overlay">
           <div className="broker-modal">
-            <h3 className="broker-modal__title">단골 중개사에게 방 내놓기</h3>
+            <h3 className="broker-modal__title">주거래 중개사에게 방 내놓기</h3>
             <p className="broker-modal__desc">방 정보를 전송할 중개사를 선택하세요.</p>
             
             <div className="broker-modal__list">
-              {building?.brokers?.map(broker => (
-                <label key={broker.id} className="broker-modal__item">
+              {user?.brokers?.map((broker, idx) => {
+                const brokerId = broker.id || broker.phone || String(idx);
+                return (
+                <label key={brokerId} className="broker-modal__item">
                   <input 
                     type="checkbox" 
-                    checked={selectedBrokers.includes(broker.id)}
+                    checked={selectedBrokers.includes(brokerId)}
                     onChange={(e) => {
                       if (e.target.checked) {
-                        setSelectedBrokers([...selectedBrokers, broker.id]);
+                        setSelectedBrokers([...selectedBrokers, brokerId]);
                       } else {
-                        setSelectedBrokers(selectedBrokers.filter(id => id !== broker.id));
+                        setSelectedBrokers(selectedBrokers.filter(id => id !== brokerId));
                       }
                     }}
                   />
                   <span className="broker-modal__name">{broker.name} ({broker.phone})</span>
                 </label>
-              ))}
+                );
+              })}
             </div>
             
             <div className="broker-modal__actions">
@@ -516,7 +521,10 @@ export default function UnitDetail() {
                 
                 const brochureLink = `\n\n[손님 전송용 웹 브로셔 링크]\nhttps://app.com/share/${buildingId}/${unitId}/brochure`;
                 
-                const selectedNames = building.brokers.filter(b => selectedBrokers.includes(b.id)).map(b => b.name).join(', ');
+                const selectedNames = user.brokers.filter((b, idx) => {
+                  const bId = b.id || b.phone || String(idx);
+                  return selectedBrokers.includes(bId);
+                }).map(b => b.name).join(', ');
                 alert(`[모의 발송 완료]\n\n선택한 중개사(${selectedNames})에게 카카오톡으로 공실 정보가 발송되었습니다!\n\n(발송 내용)\n${text}${brochureLink}`);
                 
                 await updateUnit(buildingId, unitId, { lastBrokerNotifiedAt: new Date().toISOString() });

@@ -15,7 +15,7 @@ export default function RoleSelect() {
   const handleSelect = (role) => {
     // 임시로 사용설명서는 라우팅 무시
     if (role === 'manual') {
-      alert('사용설명서는 준비 중입니다.');
+      navigate('/manual');
       return;
     }
     setRole(role);

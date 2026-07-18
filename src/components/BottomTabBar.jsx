@@ -21,9 +21,15 @@ const TENANT_TABS = [
   { path: '/tenant/payments', icon: '💰', label: '납부내역' },
   { path: '/tenant/notifications', icon: '🔔', label: '알림' },
 ];
+const BROKER_TABS = [
+  { path: '/broker/home', icon: '🏠', label: '홈' },
+  // 추후 중개사 전용 탭 추가 가능
+];
 
 export default function BottomTabBar({ role = 'landlord' }) {
-  const tabs = role === 'tenant' ? TENANT_TABS : LANDLORD_TABS;
+  let tabs = LANDLORD_TABS;
+  if (role === 'tenant') tabs = TENANT_TABS;
+  if (role === 'broker') tabs = BROKER_TABS;
 
   return (
     <nav className="bottom-tab" aria-label="메인 내비게이션">

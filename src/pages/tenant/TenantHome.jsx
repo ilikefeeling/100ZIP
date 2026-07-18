@@ -48,7 +48,7 @@ export default function TenantHome() {
               onClick={async () => {
                 if (window.confirm('로그아웃 하시겠습니까?')) {
                   await logout();
-                  navigate('/login', { replace: true });
+                  navigate('/role-select', { replace: true });
                 }
               }}
               style={{
@@ -95,7 +95,7 @@ export default function TenantHome() {
             onClick={async () => {
               if (window.confirm('로그아웃 하시겠습니까?')) {
                 await logout();
-                navigate('/login', { replace: true });
+                navigate('/role-select', { replace: true });
               }
             }}
             style={{

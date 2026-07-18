@@ -382,21 +382,6 @@ export default function BuildingSettings() {
           </div>
         </div>
 
-        {/* 4. 중개사 관리 */}
-        <div className="bld-settings__section">
-          <h2 className="bld-settings__section-title">주거래 중개사사무소</h2>
-          <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '16px', lineHeight: '1.5' }}>
-            이 건물의 공실을 주로 맡기는 중개사사무소나 직거래 정보를 관리합니다.
-          </p>
-          <Button 
-            variant="outline" 
-            onClick={() => navigate(`/landlord/buildings/${buildingId}/brokers`)}
-            fullWidth
-          >
-            주거래 중개사사무소 관리하기
-          </Button>
-        </div>
-
         <div className="bld-settings__footer">
           <Button variant="primary" disabled={isUploading} onClick={handleSave}>
             {isUploading ? '저장 중...' : '저장하기'}
