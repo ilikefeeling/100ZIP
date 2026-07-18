@@ -52,6 +52,10 @@ const useAuthStore = create((set, get) => ({
   loginWithKakao: async (role) => {
     try {
       const provider = new OAuthProvider('oidc.kakao');
+      
+      // 카카오 닉네임과 프로필 이미지를 받아오기 위한 스코프(Scope) 추가
+      provider.addScope('profile_nickname');
+      provider.addScope('profile_image');
 
       // 팝업으로 카카오 로그인 진행
       const result = await signInWithPopup(auth, provider);
