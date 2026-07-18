@@ -36,7 +36,7 @@ export default function Splash() {
   return (
     <div className="splash">
       <div className="splash__logo" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <img src="/250-icon.png" alt="100집 로고" style={{ width: '80px', height: '80px', borderRadius: '20px', marginBottom: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+        <img src="/icon.png" alt="100집 로고" style={{ width: '80px', height: '80px', borderRadius: '20px', marginBottom: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
         <h1 className="splash__title" style={{ fontSize: '44px', fontWeight: '900', color: 'var(--color-primary-600)', margin: 0 }}>100집</h1>
         <p style={{ fontSize: '18px', color: 'var(--color-text-secondary)', marginTop: '8px', letterSpacing: '2px', fontWeight: '600' }}>100ZIP</p>
       </div>
