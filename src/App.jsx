@@ -148,10 +148,13 @@ export default function App() {
   );
 }
 
+import TopBar from './components/TopBar';
+
 /** Placeholder for future phases */
 function PlaceholderPage({ title }) {
   return (
     <div className="page">
+      <TopBar title={title} />
       <div className="page-content" style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         justifyContent: 'center', minHeight: '60vh', textAlign: 'center', gap: '16px',

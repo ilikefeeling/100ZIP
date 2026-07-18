@@ -6,11 +6,12 @@ import Card from '../../components/Card';
 import NumPad from '../../components/NumPad';
 import Button from '../../components/Button';
 import ProgressBar from '../../components/ProgressBar';
+import { uploadCompressedImage } from '../../utils/imageUpload';
 import './UnitRegister.css';
 
 /**
  * LL-002b 호실 등록
- * 순차 카드: 호실번호 → 전용면적 → 구조 → 옵션 → 특기사항
+ * 순차 카드: 호실번호 → 전용면적 → 구조 → 옵션 → 특기사항 → 사진(최대 3장)
  */
 
 const STRUCTURE_TYPES = ['원룸', '투룸', '쓰리룸이상'];
@@ -28,6 +29,7 @@ export default function UnitRegister() {
   const navigate = useNavigate();
   const { buildingId } = useParams();
   const addUnit = usePropertyStore((s) => s.addUnit);
+  const updateUnit = usePropertyStore((s) => s.updateUnit);
   const building = usePropertyStore((s) => s.getBuilding(buildingId));
 
   const [step, setStep] = useState(1);
@@ -41,7 +43,11 @@ export default function UnitRegister() {
   const [showCustomOption, setShowCustomOption] = useState(false);
   const [customOption, setCustomOption] = useState('');
 
-  const totalSteps = 5;
+  // 사진 업로드 (최대 3장)
+  const [photos, setPhotos] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const totalSteps = 6;
 
   const toggleOption = (id) => {
     setOptions((prev) =>
@@ -64,24 +70,56 @@ export default function UnitRegister() {
     });
   };
 
-  const handleComplete = async () => {
-    let finalNotes = [...selectedSpecials];
-    if (showCustomInput && customNote.trim()) {
-      finalNotes.push(customNote.trim());
+  const handlePhotoSelect = (e) => {
+    const files = Array.from(e.target.files);
+    if (photos.length + files.length > 3) {
+      alert('사진은 최대 3장까지만 등록할 수 있습니다.');
+      return;
     }
+    setPhotos([...photos, ...files].slice(0, 3));
+  };
 
-    await addUnit(buildingId, {
-      unitNumber: unitNumber || `${(building?.units?.length || 0) + 1}01호`,
-      floor: parseInt(unitNumber) ? Math.floor(parseInt(unitNumber) / 100) : 1,
-      exclusiveArea: parseFloat(area) || 0,
-      structureType: structure,
-      options: [
-        ...options.map((id) => OPTION_ITEMS.find((o) => o.id === id)?.label).filter(Boolean),
-        ...(showCustomOption && customOption.trim() ? [customOption.trim()] : [])
-      ],
-      specialNotes: finalNotes.join(', '),
-    });
-    navigate(`/landlord/buildings/${buildingId}/units`, { replace: true });
+  const removePhoto = (index) => {
+    setPhotos(photos.filter((_, i) => i !== index));
+  };
+
+  const handleComplete = async () => {
+    setIsUploading(true);
+    try {
+      let finalNotes = [...selectedSpecials];
+      if (showCustomInput && customNote.trim()) {
+        finalNotes.push(customNote.trim());
+      }
+
+      const unitId = await addUnit(buildingId, {
+        unitNumber: unitNumber || `${(building?.units?.length || 0) + 1}01호`,
+        floor: parseInt(unitNumber) ? Math.floor(parseInt(unitNumber) / 100) : 1,
+        exclusiveArea: parseFloat(area) || 0,
+        structureType: structure,
+        options: [
+          ...options.map((id) => OPTION_ITEMS.find((o) => o.id === id)?.label).filter(Boolean),
+          ...(showCustomOption && customOption.trim() ? [customOption.trim()] : [])
+        ],
+        specialNotes: finalNotes.join(', '),
+      });
+
+      // 사진 업로드 병렬 처리
+      if (photos.length > 0) {
+        const uploadPromises = photos.map((photo, index) => {
+          const path = `buildings/${buildingId}/units/${unitId}/photo_${Date.now()}_${index}.webp`;
+          return uploadCompressedImage(photo, path);
+        });
+        const uploadedUrls = await Promise.all(uploadPromises);
+        await updateUnit(buildingId, unitId, { photoUrls: uploadedUrls });
+      }
+
+      navigate(`/landlord/buildings/${buildingId}/units`, { replace: true });
+    } catch (error) {
+      console.error('Unit registration failed:', error);
+      alert('호실 등록에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -223,6 +261,46 @@ export default function UnitRegister() {
           </div>
         )}
 
+        {/* Step 6: 사진 */}
+        {step === 6 && (
+          <div className="unit-reg__step" key="s6">
+            <h2 className="unit-reg__question">호실 사진을 등록해주세요</h2>
+            <p className="unit-reg__hint" style={{ textAlign: 'center', marginBottom: '16px' }}>최대 3장 (방, 화장실 등)</p>
+            
+            <div className="unit-reg__photo-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+              {photos.map((photo, index) => (
+                <div key={index} style={{ position: 'relative', aspectRatio: '4/3', borderRadius: '12px', overflow: 'hidden' }}>
+                  <img 
+                    src={URL.createObjectURL(photo)} 
+                    alt={`Selected ${index + 1}`} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  />
+                  <button 
+                    onClick={() => removePhoto(index)}
+                    style={{ position: 'absolute', top: '6px', right: '6px', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              
+              {photos.length < 3 && (
+                <div style={{ position: 'relative', aspectRatio: '4/3', borderRadius: '12px', backgroundColor: 'var(--color-bg-secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '2px dashed var(--color-border)' }}>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    multiple
+                    onChange={handlePhotoSelect} 
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+                  />
+                  <span style={{ fontSize: '24px', marginBottom: '4px' }}>📷</span>
+                  <span style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>{photos.length}/3 추가</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* 하단 */}
         <div className="unit-reg__footer">
           {step < totalSteps ? (
@@ -230,13 +308,15 @@ export default function UnitRegister() {
               다음
             </Button>
           ) : (
-            <Button variant="accent" onClick={handleComplete}>
-              호실 등록 완료
+            <Button variant="accent" disabled={isUploading} onClick={handleComplete}>
+              {isUploading ? '업로드 중...' : '호실 등록 완료'}
             </Button>
           )}
-          <button className="unit-reg__skip" onClick={() => step < totalSteps ? setStep(step + 1) : handleComplete()}>
-            건너뛰기
-          </button>
+          {step > 1 && (
+            <button className="unit-reg__skip" onClick={() => step < totalSteps ? setStep(step + 1) : handleComplete()}>
+              {step === totalSteps ? '사진 없이 완료' : '건너뛰기'}
+            </button>
+          )}
         </div>
       </div>
     </div>

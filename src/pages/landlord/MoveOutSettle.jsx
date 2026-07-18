@@ -99,6 +99,7 @@ export default function MoveOutSettle() {
       // 1. 계약 종료 대기 혹은 임차인 확인 대기 상태로 변경 및 정산 데이터 저장
       await updateContract(buildingId, unitId, {
         status: '정산대기',
+        lastNotifiedAt: new Date().toISOString(),
         moveOutSettle: {
           deposit,
           deductions,

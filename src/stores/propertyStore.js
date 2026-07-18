@@ -97,6 +97,11 @@ const usePropertyStore = create((set, get) => ({
   deleteBuilding: async (buildingId) => {
     const docRef = doc(db, 'buildings', buildingId);
     await deleteDoc(docRef);
+    
+    // 연동된 스토리지 파일(건물 대표사진, 호실 사진 등) 삭제 (고아 객체 정리)
+    import('../utils/imageUpload').then(({ deleteStorageFolder }) => {
+      deleteStorageFolder(`buildings/${buildingId}`);
+    }).catch(console.error);
   },
 
   // ──── 주거래 중개사사무소 ────
@@ -187,7 +192,7 @@ const usePropertyStore = create((set, get) => ({
       unitId,
       buildingId,
       ...contract,
-      status: '대기',    // '대기' | '확정' | '종료'
+      status: '대기',    // '대기' | '확정' | '종료' | '정산대기'
       landlordSigned: false,
       tenantSigned: false,
       kit: {
@@ -225,6 +230,35 @@ const usePropertyStore = create((set, get) => ({
         ? { ...u, contract: { ...u.contract, ...updates } }
         : u
     );
+
+    const docRef = doc(db, 'buildings', buildingId);
+    await updateDoc(docRef, { units: updatedUnits });
+  },
+
+  terminateContract: async (buildingId, unitId) => {
+    const building = get().getBuilding(buildingId);
+    if (!building) return;
+
+    let targetUnit = building.units.find(u => u.id === unitId);
+    if (!targetUnit || !targetUnit.contract) return;
+
+    const endedContract = {
+      ...targetUnit.contract,
+      status: '종료',
+      endedAt: new Date().toISOString()
+    };
+
+    const updatedUnits = building.units.map((u) => {
+      if (u.id === unitId) {
+        return {
+          ...u,
+          status: '공실',
+          contract: null,
+          contractHistory: [...(u.contractHistory || []), endedContract]
+        };
+      }
+      return u;
+    });
 
     const docRef = doc(db, 'buildings', buildingId);
     await updateDoc(docRef, { units: updatedUnits });

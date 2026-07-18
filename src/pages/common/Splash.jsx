@@ -37,7 +37,11 @@ export default function Splash() {
     <div className="splash">
       <div className="splash__logo" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <img src="/icon.png" alt="100집 로고" style={{ width: '80px', height: '80px', borderRadius: '20px', marginBottom: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-        <h1 className="splash__title" style={{ fontSize: '44px', fontWeight: '900', color: 'var(--color-primary-600)', margin: 0 }}>100집</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+          <span style={{ fontSize: '32px', fontWeight: '700', color: 'var(--color-text-primary)' }}>편리하게</span>
+          <h1 className="splash__title" style={{ fontSize: '44px', fontWeight: '900', color: 'var(--color-primary-600)', margin: 0 }}>100집</h1>
+          <span style={{ fontSize: '32px', fontWeight: '700', color: 'var(--color-text-primary)' }}>관리</span>
+        </div>
         <p style={{ fontSize: '18px', color: 'var(--color-text-secondary)', marginTop: '8px', letterSpacing: '2px', fontWeight: '600' }}>100ZIP</p>
       </div>
       <div className="splash__loader">

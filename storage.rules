@@ -12,13 +12,22 @@ service firebase.storage {
       allow read, write: if false;
     }
     
-    // 사진, 문서 등 파일 업로드 규칙
+    // 사진, 문서 등 파일 업로드 규칙 (이전 호환용)
     match /uploads/{userId}/{fileName} {
       // 인증된 사용자이고, 자신의 폴더에만 업로드 가능
       allow write: if isAppChecked() && request.auth != null && request.auth.uid == userId;
       
       // 조회는 인증된 앱 사용자이거나, 파일의 다운로드 토큰을 알고 있는 경우 가능
       // Firebase Client SDK를 통해 URL을 얻어오면 누구나 읽을 수 있게 하려면 true로 설정
+      allow read: if isAppChecked();
+    }
+    
+    // 새롭게 적용된 건물 단위 사진 관리 규칙
+    match /buildings/{buildingId}/{allPaths=**} {
+      // 업로드, 수정, 삭제는 로그인한 사용자(임대인)만 가능
+      allow write: if isAppChecked() && request.auth != null;
+      
+      // 이미지는 앱 내외(공유된 링크)에서 보여져야 하므로 누구나 읽기 가능
       allow read: if isAppChecked();
     }
   }

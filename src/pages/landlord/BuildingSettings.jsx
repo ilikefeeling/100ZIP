@@ -4,6 +4,7 @@ import usePropertyStore from '../../stores/propertyStore';
 import TopBar from '../../components/TopBar';
 import Button from '../../components/Button';
 import { formatPhoneNumber } from '../../utils/formatters';
+import { uploadCompressedImage } from '../../utils/imageUpload';
 import './BuildingSettings.css';
 
 const BUILDING_TYPES = ['원룸', '다가구', '오피스텔', '상가주택'];
@@ -41,6 +42,11 @@ export default function BuildingSettings() {
   const [rentBank, setRentBank] = useState('');
   const [rentAccount, setRentAccount] = useState('');
 
+  // 사진 관리
+  const [mainPhotoUrl, setMainPhotoUrl] = useState('');
+  const [newMainPhoto, setNewMainPhoto] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+
   // Delete Modal State
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteInput, setDeleteInput] = useState('');
@@ -64,38 +70,74 @@ export default function BuildingSettings() {
       setCommonNotice(building.commonNotice || '');
       setRentBank(building.rentBank || '');
       setRentAccount(building.rentAccount || '');
+      setMainPhotoUrl(building.mainPhotoUrl || '');
     } else {
       navigate('/landlord', { replace: true });
     }
   }, [building, navigate]);
 
   const handleSave = async () => {
-    await updateBuilding(buildingId, {
-      address,
-      buildingType,
-      totalUnitCount: parseInt(totalUnits) || 1,
-      commonDoorCode,
-      commonWifiCode,
-      otherCommonCode,
-      trashInfo,
-      parkingInfo,
-      gasContactName,
-      gasContactPhone,
-      electricContactName,
-      electricContactPhone,
-      otherContactName,
-      otherContactPhone,
-      commonNotice,
-      rentBank,
-      rentAccount,
-    });
-    alert('건물 정보가 저장되었습니다.');
-    navigate(-1);
+    setIsUploading(true);
+    try {
+      let finalPhotoUrl = mainPhotoUrl;
+
+      // 새로운 사진이 선택된 경우 업로드
+      if (newMainPhoto) {
+        const path = `buildings/${buildingId}/mainPhoto_${Date.now()}.webp`;
+        finalPhotoUrl = await uploadCompressedImage(newMainPhoto, path);
+      } else if (newMainPhoto === null && !mainPhotoUrl) {
+        // 사진이 삭제된 경우
+        finalPhotoUrl = '';
+      }
+
+      await updateBuilding(buildingId, {
+        address,
+        buildingType,
+        totalUnitCount: parseInt(totalUnits) || 1,
+        commonDoorCode,
+        commonWifiCode,
+        otherCommonCode,
+        trashInfo,
+        parkingInfo,
+        gasContactName,
+        gasContactPhone,
+        electricContactName,
+        electricContactPhone,
+        otherContactName,
+        otherContactPhone,
+        commonNotice,
+        rentBank,
+        rentAccount,
+        mainPhotoUrl: finalPhotoUrl,
+      });
+      alert('건물 정보가 저장되었습니다.');
+      navigate(-1);
+    } catch (error) {
+      console.error('Failed to save building settings:', error);
+      alert('저장 중 오류가 발생했습니다.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handlePhotoSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setNewMainPhoto(file);
+    }
+  };
+
+  const handlePhotoRemove = (e) => {
+    e.stopPropagation();
+    setNewMainPhoto(null);
+    setMainPhotoUrl(''); // 기존 사진 삭제 의도
+    document.getElementById('building-photo-upload').value = '';
   };
 
   const handleDelete = async () => {
     if (deleteInput === '삭제합니다') {
       await deleteBuilding(buildingId);
+      // TODO: Firebase Storage 고아 이미지(mainPhotoUrl) 삭제 로직 추가 가능
       setShowDeleteModal(false);
       navigate('/landlord', { replace: true });
     }
@@ -108,6 +150,54 @@ export default function BuildingSettings() {
       <TopBar title="건물 상세" />
       <div className="page-content bld-settings" style={{ overflowY: 'auto' }}>
         
+        {/* 0. 대표 사진 */}
+        <div className="bld-settings__section">
+          <h2 className="bld-settings__section-title">건물 대표 사진</h2>
+          <div style={{ position: 'relative', width: '100%', aspectRatio: '4/3', borderRadius: '16px', overflow: 'hidden', backgroundColor: 'var(--color-bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <input 
+              type="file" 
+              accept="image/*" 
+              onChange={handlePhotoSelect} 
+              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer', zIndex: 10 }}
+              id="building-photo-upload"
+            />
+            {newMainPhoto ? (
+              <>
+                <img 
+                  src={URL.createObjectURL(newMainPhoto)} 
+                  alt="Selected" 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                />
+                <button 
+                  onClick={handlePhotoRemove}
+                  style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20 }}
+                >
+                  ✕
+                </button>
+              </>
+            ) : mainPhotoUrl ? (
+              <>
+                <img 
+                  src={mainPhotoUrl} 
+                  alt="Building" 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                />
+                <button 
+                  onClick={handlePhotoRemove}
+                  style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20 }}
+                >
+                  ✕
+                </button>
+              </>
+            ) : (
+              <div style={{ textAlign: 'center', pointerEvents: 'none' }}>
+                <div style={{ fontSize: '32px', marginBottom: '8px' }}>📷</div>
+                <div style={{ color: 'var(--color-text-tertiary)', fontSize: '14px' }}>터치하여 사진 등록 (최대 1장)</div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* 1. 기본 정보 */}
         <div className="bld-settings__section">
           <h2 className="bld-settings__section-title">기본 정보</h2>
@@ -308,8 +398,8 @@ export default function BuildingSettings() {
         </div>
 
         <div className="bld-settings__footer">
-          <Button variant="primary" onClick={handleSave}>
-            저장하기
+          <Button variant="primary" disabled={isUploading} onClick={handleSave}>
+            {isUploading ? '저장 중...' : '저장하기'}
           </Button>
         </div>
 

@@ -15,6 +15,8 @@ import './BuildingRegister.css';
  * 순차 카드: 주소 → 건물유형 → 총 호실수 → 사진
  */
 
+import { uploadCompressedImage } from '../../utils/imageUpload';
+
 const BUILDING_TYPES = ['원룸', '다가구', '오피스텔', '상가주택'];
 
 const GAS_COMPANIES = [
@@ -27,6 +29,7 @@ const GAS_COMPANIES = [
 export default function BuildingRegister() {
   const navigate = useNavigate();
   const addBuilding = usePropertyStore((s) => s.addBuilding);
+  const updateBuilding = usePropertyStore((s) => s.updateBuilding);
   const user = useAuthStore((s) => s.user);
 
   const [step, setStep] = useState(1);
@@ -54,6 +57,10 @@ export default function BuildingRegister() {
   const [rentBank, setRentBank] = useState('');
   const [rentAccount, setRentAccount] = useState('');
 
+  // 사진 업로드
+  const [mainPhoto, setMainPhoto] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+
   const totalSteps = 7;
 
   const handleNext = () => {
@@ -63,27 +70,49 @@ export default function BuildingRegister() {
   };
 
   const handleComplete = async () => {
-    const buildingId = await addBuilding({
-      landlordPhone: user?.phoneNumber || '',
-      address: address || '서울시 강남구 테헤란로 123',
-      buildingType,
-      totalUnitCount: parseInt(totalUnits) || 1,
-      commonDoorCode,
-      commonWifiCode,
-      otherCommonCode,
-      trashInfo,
-      parkingInfo,
-      gasContactName,
-      gasContactPhone,
-      electricContactName,
-      electricContactPhone,
-      otherContactName,
-      otherContactPhone,
-      commonNotice,
-      rentBank,
-      rentAccount,
-    });
-    navigate(`/landlord/buildings/${buildingId}/units`, { replace: true });
+    setIsUploading(true);
+    try {
+      const buildingId = await addBuilding({
+        landlordPhone: user?.phoneNumber || '',
+        address: address || '서울시 강남구 테헤란로 123',
+        buildingType,
+        totalUnitCount: parseInt(totalUnits) || 1,
+        commonDoorCode,
+        commonWifiCode,
+        otherCommonCode,
+        trashInfo,
+        parkingInfo,
+        gasContactName,
+        gasContactPhone,
+        electricContactName,
+        electricContactPhone,
+        otherContactName,
+        otherContactPhone,
+        commonNotice,
+        rentBank,
+        rentAccount,
+      });
+
+      if (mainPhoto) {
+        const path = `buildings/${buildingId}/mainPhoto_${Date.now()}.webp`;
+        const url = await uploadCompressedImage(mainPhoto, path);
+        await updateBuilding(buildingId, { mainPhotoUrl: url });
+      }
+
+      navigate(`/landlord/buildings/${buildingId}/units`, { replace: true });
+    } catch (error) {
+      console.error('Building registration failed:', error);
+      alert('건물 등록에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handlePhotoSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setMainPhoto(file);
+    }
   };
 
   const canProceed = () => {
@@ -344,13 +373,37 @@ export default function BuildingRegister() {
         {/* Step 7: 사진 */}
         {step === 7 && (
           <div className="bld-reg__step" key="step7">
-            <h2 className="bld-reg__question">건물 사진을 찍어주세요</h2>
-            <div className="bld-reg__photo">
-              <button className="bld-reg__camera-btn" type="button">
-                <span className="bld-reg__camera-icon">📷</span>
-                <span>사진 촬영하기</span>
-              </button>
-              <p className="bld-reg__hint">사진은 나중에 추가할 수도 있어요</p>
+            <h2 className="bld-reg__question">건물 사진을 등록해주세요</h2>
+            <p className="bld-reg__hint" style={{ textAlign: 'center', marginBottom: '16px' }}>최대 1장 (대표 사진)</p>
+            <div className="bld-reg__photo" style={{ position: 'relative' }}>
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={handlePhotoSelect} 
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+                id="building-photo-upload"
+              />
+              {mainPhoto ? (
+                <div style={{ position: 'relative', width: '100%', aspectRatio: '4/3', borderRadius: '16px', overflow: 'hidden' }}>
+                  <img 
+                    src={URL.createObjectURL(mainPhoto)} 
+                    alt="Selected" 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  />
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); setMainPhoto(null); document.getElementById('building-photo-upload').value = ''; }}
+                    style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <div className="bld-reg__camera-btn" style={{ pointerEvents: 'none' }}>
+                  <span className="bld-reg__camera-icon">📷</span>
+                  <span>사진 선택하기</span>
+                </div>
+              )}
+              {!mainPhoto && <p className="bld-reg__hint">사진은 나중에 추가할 수도 있어요</p>}
             </div>
           </div>
         )}
@@ -368,9 +421,10 @@ export default function BuildingRegister() {
           ) : (
             <Button
               variant="accent"
+              disabled={isUploading}
               onClick={handleComplete}
             >
-              건물 등록 완료
+              {isUploading ? '업로드 중...' : '건물 등록 완료'}
             </Button>
           )}
           {step > 1 && (

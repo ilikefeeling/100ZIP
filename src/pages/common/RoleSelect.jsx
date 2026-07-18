@@ -32,7 +32,11 @@ export default function RoleSelect() {
         }}>
           <span style={{ fontSize: '32px', color: '#fff', fontWeight: '900' }}>100</span>
         </div>
-        <h1 style={{ fontSize: '32px', fontWeight: '900', color: 'var(--color-primary-600)', margin: '0 0 4px 0' }}>100집</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 4px 0' }}>
+          <span style={{ fontSize: '24px', fontWeight: '700', color: 'var(--color-text-primary)' }}>편리하게</span>
+          <h1 style={{ fontSize: '32px', fontWeight: '900', color: 'var(--color-primary-600)', margin: 0 }}>100집</h1>
+          <span style={{ fontSize: '24px', fontWeight: '700', color: 'var(--color-text-primary)' }}>관리</span>
+        </div>
         <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', letterSpacing: '1px', fontWeight: '600', margin: 0 }}>100ZIP</p>
         <p style={{ fontSize: '18px', color: 'var(--color-text-primary)', marginTop: '24px', fontWeight: 'bold' }}>어떤 역할로 시작할까요?</p>
       </div>

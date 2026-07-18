@@ -42,8 +42,21 @@ service cloud.firestore {
       // 단일 조회(get): 링크를 통해 접근하는 중개사 및 비회원 임차인을 위해 문서 ID를 아는 경우 허용
       allow get: if isAppChecked();
       
-      // 수정/삭제: 건물을 등록한 임대인 본인만 가능
-      allow update, delete: if isAppChecked() && request.auth != null && resource.data.userId == request.auth.uid;
+      // 삭제: 건물을 등록한 임대인 본인만 가능
+      allow delete: if isAppChecked() && request.auth != null && resource.data.userId == request.auth.uid;
+
+      // 수정(update):
+      // 1. 임대인 본인인 경우 자유롭게 수정 허용
+      // 2. 비회원 임차인인 경우, 계약 서명 목적으로 units 배열 등을 업데이트할 수 있게 허용하되 건물의 핵심 정보는 변경 불가하도록 차단
+      allow update: if isAppChecked() && (
+        (request.auth != null && resource.data.userId == request.auth.uid) ||
+        (
+          request.auth == null &&
+          request.resource.data.userId == resource.data.userId &&
+          request.resource.data.name == resource.data.name &&
+          request.resource.data.address == resource.data.address
+        )
+      );
     }
   }
 }
