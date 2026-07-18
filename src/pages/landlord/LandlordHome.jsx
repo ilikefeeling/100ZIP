@@ -173,26 +173,27 @@ export default function LandlordHome() {
           </div>
         )}
 
-        {/* 바이럴 배너: 주변 건물주에게 앱 알려주기 */}
+        {/* 배너: 앱 설치하기 (PWA) */}
         <div style={{ marginTop: '32px', marginBottom: '80px' }}>
           <Card>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '16px 8px' }}>
-
-              <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '8px' }}>주변 건물주에게 앱 알려주기</h3>
+              <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '8px' }}>내 스마트폰에 앱 설치하기</h3>
               <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '20px', lineHeight: '1.5' }}>
-                혼자 쓰기 아까운 계약 관리 앱!<br/>
-                주변 건물주나 중개사에게 알려주세요.
+                바탕화면에 아이콘을 추가하고<br/>더 빠르고 편리하게 앱을 이용해 보세요!
               </p>
               <button
                 onClick={() => {
-                  import('../../utils/kakao').then(({ shareToKakao }) => {
-                    shareToKakao({
-                      title: '100집 - 건물주를 위한 스마트 임대관리',
-                      description: '임대차 계약부터 입주 안내까지, 폰 하나로 5분 만에 끝내는 최고의 앱을 소개합니다!',
-                      imageUrl: 'https://100zip.com/icon.png',
-                      link: 'https://100zip.com'
+                  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                  if (window.deferredPrompt) {
+                    window.deferredPrompt.prompt();
+                    window.deferredPrompt.userChoice.then((choiceResult) => {
+                      if (choiceResult.outcome === 'accepted') {
+                        window.deferredPrompt = null;
+                      }
                     });
-                  });
+                  } else {
+                    alert("📱 바탕화면(홈 화면)에 앱 설치하는 방법\n\n📌 아이폰(Safari)\n브라우저 하단의 [공유(내보내기)] 버튼 ➔ [홈 화면에 추가]\n\n📌 안드로이드(Chrome)\n브라우저 우측 상단의 [⋮] 메뉴 ➔ [홈 화면에 추가] 또는 [앱 설치]");
+                  }
                 }}
                 style={{
                   background: 'var(--color-primary-600)',
@@ -206,7 +207,7 @@ export default function LandlordHome() {
                   width: '100%'
                 }}
               >
-                카톡으로 알려주기
+                앱 설치 안내 보기
               </button>
             </div>
           </Card>
