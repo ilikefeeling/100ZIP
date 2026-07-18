@@ -1,0 +1,39 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: var(--radius-badge);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* 완료 (납부완료, 서명완료) */
+.badge--success {
+  background: rgba(47, 143, 91, 0.10);
+  color: var(--color-success-600);
+}
+
+/* 대기 (납부대기, 확인대기) */
+.badge--neutral {
+  background: rgba(138, 143, 152, 0.10);
+  color: var(--color-neutral-500);
+}
+
+/* 미납 / 주의 */
+.badge--warning {
+  background: rgba(217, 138, 43, 0.12);
+  color: var(--color-warning-600);
+}
+
+/* 독촉중 / 위험 */
+.badge--danger {
+  background: rgba(198, 72, 63, 0.12);
+  color: var(--color-danger-600);
+}
+
+/* 안내 / 정보 */
+.badge--info {
+  background: rgba(58, 110, 165, 0.10);
+  color: var(--color-info-600);
+}

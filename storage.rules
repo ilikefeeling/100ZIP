@@ -1,0 +1,25 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+  
+    // App Check 검증 함수 (프로덕션 환경에서는 request.appcheck.token != null; 로 변경)
+    function isAppChecked() {
+      return true;
+    }
+
+    match /{allPaths=**} {
+      // 기본적으로 모든 접근 차단
+      allow read, write: if false;
+    }
+    
+    // 사진, 문서 등 파일 업로드 규칙
+    match /uploads/{userId}/{fileName} {
+      // 인증된 사용자이고, 자신의 폴더에만 업로드 가능
+      allow write: if isAppChecked() && request.auth != null && request.auth.uid == userId;
+      
+      // 조회는 인증된 앱 사용자이거나, 파일의 다운로드 토큰을 알고 있는 경우 가능
+      // Firebase Client SDK를 통해 URL을 얻어오면 누구나 읽을 수 있게 하려면 true로 설정
+      allow read: if isAppChecked();
+    }
+  }
+}

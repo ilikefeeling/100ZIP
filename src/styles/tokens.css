@@ -1,0 +1,80 @@
+/* =============================================
+   건물주 디자인 토큰 — 05_design-tokens.md 기반
+   ============================================= */
+
+:root {
+  /* ── 1. Brand ── */
+  --color-primary-900: #16283F;
+  --color-primary-600: #1E3A5F;
+  --color-primary-100: #E4EAF1;
+  --color-accent-600:  #B9762C;
+  --color-accent-100:  #F6E9D8;
+
+  /* ── 2. Surface ── */
+  --color-bg-base:        #F7F6F3;
+  --color-surface:        #FFFFFF;
+  --color-surface-sunken: #EFEDE8;
+  --color-border:         #DAD7CF;
+
+  /* ── 3. Semantic (상태) ── */
+  --color-success-600: #2F8F5B;
+  --color-neutral-500: #8A8F98;
+  --color-warning-600: #D98A2B;
+  --color-danger-600:  #C6483F;
+  --color-info-600:    #3A6EA5;
+
+  /* ── 4. Text ── */
+  --color-text-primary:    #1B1B1B;
+  --color-text-secondary:  #5B5D63;
+  --color-text-disabled:   #A6A8AC;
+  --color-text-on-primary: #FFFFFF;
+  --color-text-on-accent:  #FFFFFF;
+
+  /* ── 5. Typography ── */
+  --font-family-base: 'Pretendard Variable', -apple-system, Roboto, sans-serif;
+
+  --font-display:          700 44px/1.3  var(--font-family-base);
+  --font-heading-1:        700 36px/1.35 var(--font-family-base);
+  --font-heading-2:        700 30px/1.4  var(--font-family-base);
+  --font-body-large:       600 24px/1.5  var(--font-family-base);
+  --font-body:             600 20px/1.6  var(--font-family-base);
+  --font-caption:          600 18px/1.5  var(--font-family-base);
+  --font-numeric-emphasis: 700 44px/1.2  var(--font-family-base);
+}
+
+html[data-font-scale="large"] {
+  --font-display:          700 48px/1.3  var(--font-family-base);
+  --font-heading-1:        700 40px/1.35 var(--font-family-base);
+  --font-heading-2:        700 34px/1.4  var(--font-family-base);
+  --font-body-large:       600 28px/1.5  var(--font-family-base);
+  --font-body:             600 24px/1.6  var(--font-family-base);
+  --font-caption:          600 20px/1.5  var(--font-family-base);
+  --font-numeric-emphasis: 700 48px/1.2  var(--font-family-base);
+}
+
+html[data-font-scale="xlarge"] {
+  --font-display:          700 56px/1.3  var(--font-family-base);
+  --font-heading-1:        700 48px/1.35 var(--font-family-base);
+  --font-heading-2:        700 40px/1.4  var(--font-family-base);
+  --font-body-large:       600 34px/1.5  var(--font-family-base);
+  --font-body:             600 28px/1.6  var(--font-family-base);
+  --font-caption:          600 24px/1.5  var(--font-family-base);
+  --font-numeric-emphasis: 700 56px/1.2  var(--font-family-base);
+  /* ── 6. Spacing ── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* ── 7. Radius ── */
+  --radius-card:   16px;
+  --radius-button: 12px;
+  --radius-badge:  999px;
+
+  /* ── 8. Size ── */
+  --size-touch-min:    48px;
+  --size-button-height: 56px;
+  --size-numpad-key:   64px;
+}

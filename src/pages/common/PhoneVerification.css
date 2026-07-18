@@ -1,0 +1,72 @@
+.phone-verification {
+  padding: 32px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.phone-verification__guide h2 {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin-bottom: 8px;
+  color: var(--color-text-primary);
+}
+
+.phone-verification__guide p {
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.phone-verification__form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 8px;
+}
+
+.phone-verification__input {
+  flex: 1;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button);
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.phone-verification__input:focus {
+  border-color: var(--color-primary-500);
+}
+
+.phone-verification__input:disabled {
+  background: var(--color-background);
+  color: var(--color-text-disabled);
+}
+
+.phone-verification__error {
+  color: var(--color-danger-600);
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.phone-verification__dev-skip {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px dashed var(--color-border);
+  text-align: center;
+}
+
+.dev-text {
+  font-size: 12px;
+  color: var(--color-text-disabled);
+  margin-bottom: 8px;
+}

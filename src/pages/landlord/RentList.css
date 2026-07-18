@@ -1,0 +1,145 @@
+.rent-list {
+  padding-bottom: 100px;
+}
+
+.rent-list__dashboard {
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.rent-list__month {
+  font: var(--font-heading-2);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-3);
+}
+
+.rent-list__stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+}
+
+.rent-list__stat-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-3);
+  background: var(--color-bg-base);
+  border-radius: var(--radius-card);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.rent-list__stat-box:active {
+  opacity: 0.7;
+}
+
+.rent-list__stat-box--warning {
+  background: rgba(217, 138, 43, 0.1);
+}
+
+.rent-list__stat-box--warning .rent-list__stat-value {
+  color: var(--color-warning-600);
+}
+
+.rent-list__stat-box--success {
+  background: rgba(47, 143, 91, 0.1);
+}
+
+.rent-list__stat-box--success .rent-list__stat-value {
+  color: var(--color-success-600);
+}
+
+.rent-list__stat-label {
+  font: var(--font-caption);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-1);
+}
+
+.rent-list__stat-value {
+  font: var(--font-heading-2);
+  color: var(--color-text-primary);
+}
+
+/* 필터 탭 */
+.rent-list__tabs {
+  display: flex;
+  padding: var(--space-2) var(--space-4);
+  gap: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.rent-list__tab {
+  padding: var(--space-3) 0;
+  font: var(--font-body);
+  color: var(--color-text-secondary);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+
+.rent-list__tab--active {
+  color: var(--color-text-primary);
+  font-weight: 700;
+  border-bottom-color: var(--color-primary-600);
+}
+
+/* 목록 */
+.rent-list__items {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.rent-list__empty {
+  text-align: center;
+  padding: var(--space-8) 0;
+  color: var(--color-text-secondary);
+  font: var(--font-body);
+}
+
+.rent-list__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.rent-list__card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-2);
+}
+
+.rent-list__card-title {
+  font: var(--font-heading-2);
+  color: var(--color-text-primary);
+}
+
+.rent-list__card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.rent-list__card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rent-list__card-label {
+  font: var(--font-body);
+  color: var(--color-text-secondary);
+}
+
+.rent-list__card-value {
+  font: var(--font-body);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}

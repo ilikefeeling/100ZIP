@@ -1,0 +1,103 @@
+.rent-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.rent-detail__summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.rent-detail__tenant {
+  font: var(--font-heading-2);
+  color: var(--color-text-primary);
+}
+
+.rent-detail__amount-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font: var(--font-body-large);
+  color: var(--color-text-primary);
+}
+
+.rent-detail__amount {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-accent-600);
+}
+
+.rent-detail__actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+/* 내역 리스트 */
+.rent-detail__history {
+  padding: 0 var(--space-4);
+  flex: 1;
+}
+
+.rent-detail__history-title {
+  font: var(--font-heading-2);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-3);
+}
+
+.rent-detail__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.rent-detail__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+
+.rent-detail__item-left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.rent-detail__month {
+  font: var(--font-body-large);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.rent-detail__date {
+  font: var(--font-caption);
+  color: var(--color-text-secondary);
+}
+
+.rent-detail__item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.rent-detail__item-amount {
+  font: var(--font-body);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* 하단 고정 버튼 */
+.rent-detail__footer {
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  position: sticky;
+  bottom: 0;
+}

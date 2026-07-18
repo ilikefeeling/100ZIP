@@ -1,0 +1,67 @@
+.unit-list {
+  padding-bottom: 24px;
+}
+
+.unit-list__summary {
+  padding: var(--space-4) 0 var(--space-6);
+}
+
+.unit-list__address {
+  font: var(--font-heading-2);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-3);
+}
+
+.unit-list__stats {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.unit-list__total {
+  font: var(--font-caption);
+  color: var(--color-text-secondary);
+}
+
+/* 호실 그리드 (2열) */
+.unit-list__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.unit-list__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) 0;
+  text-align: center;
+}
+
+.unit-list__card-number {
+  font: var(--font-heading-2);
+  color: var(--color-text-primary);
+}
+
+.unit-list__card-area {
+  font: var(--font-caption);
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 빈 슬롯 */
+.unit-list__card--empty {
+  opacity: 0.6;
+}
+
+.unit-list__card-plus {
+  font-size: 32px;
+  color: var(--color-text-disabled);
+}
+
+.unit-list__card-hint {
+  font: var(--font-caption);
+  color: var(--color-text-disabled);
+}

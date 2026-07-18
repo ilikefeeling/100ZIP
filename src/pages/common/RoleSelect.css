@@ -1,0 +1,51 @@
+.role-select {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.role-select__card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-8);
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  border: none;
+  text-align: center;
+}
+
+.role-select__card:active {
+  transform: scale(0.97);
+}
+
+.role-select__card--landlord {
+  background: var(--color-primary-900);
+  color: var(--color-text-on-primary);
+}
+
+.role-select__card--tenant {
+  background: var(--color-accent-100);
+  color: var(--color-text-primary);
+}
+
+.role-select__icon {
+  font-size: 64px;
+  margin-bottom: var(--space-2);
+}
+
+.role-select__label {
+  font: var(--font-heading-1);
+}
+
+.role-select__card--tenant .role-select__label {
+  color: var(--color-text-primary);
+}
+
+.role-select__desc {
+  font: var(--font-body);
+  opacity: 0.8;
+}

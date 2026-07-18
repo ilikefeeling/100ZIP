@@ -1,0 +1,111 @@
+.kit-wiz {
+  display: flex;
+  flex-direction: column;
+}
+
+.kit-wiz__step {
+  flex: 1;
+  animation: step-fade 0.3s ease-out;
+}
+
+.kit-wiz__question {
+  font: var(--font-heading-1);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+  text-align: center;
+}
+
+.kit-wiz__desc {
+  font: var(--font-body);
+  color: var(--color-text-secondary);
+  text-align: center;
+  margin-bottom: var(--space-6);
+  padding: 0 var(--space-4);
+}
+
+.kit-wiz__inputs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: 0 var(--space-4);
+}
+
+.kit-wiz__label-input {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.kit-wiz__label-input label {
+  font: var(--font-caption);
+  color: var(--color-text-secondary);
+}
+
+.kit-wiz__input {
+  width: 100%;
+  height: var(--size-button-height);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-button);
+  font: var(--font-body-large);
+  transition: border-color 0.15s ease;
+}
+
+.kit-wiz__input:focus {
+  border-color: var(--color-primary-600);
+}
+
+.kit-wiz__textarea {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-button);
+  font: var(--font-body);
+  resize: vertical;
+  transition: border-color 0.15s ease;
+}
+
+.kit-wiz__textarea:focus {
+  border-color: var(--color-primary-600);
+}
+
+.kit-wiz__contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 0 var(--space-4);
+}
+
+.kit-wiz__add-btn {
+  height: var(--size-button-height);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-button);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: var(--font-body);
+  font-weight: 600;
+  margin-top: var(--space-2);
+}
+
+.kit-wiz__add-btn:active {
+  background: var(--color-surface-sunken);
+}
+
+/* 하단 */
+.kit-wiz__footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) 0;
+  margin-top: auto;
+}
+
+.kit-wiz__skip {
+  font: var(--font-body);
+  color: var(--color-text-secondary);
+  padding: var(--space-3);
+  min-height: var(--size-touch-min);
+}

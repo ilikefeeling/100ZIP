@@ -1,0 +1,6 @@
+{
+  "appId": "com.gunmulju.app",
+  "appName": "건물주",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}

@@ -1,0 +1,148 @@
+.unit-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.unit-detail__info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.unit-detail__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.unit-detail__label {
+  font-size: 15px;
+  color: var(--color-text-secondary);
+}
+
+.unit-detail__value {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.unit-detail__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.unit-detail__section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.unit-detail__contract-info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.unit-detail__menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.unit-detail__menu-item:active {
+  background: var(--color-background);
+}
+
+.unit-detail__menu-item--stub {
+  color: var(--color-text-tertiary);
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.unit-detail__arrow {
+  color: var(--color-text-tertiary);
+}
+
+/* 브로커 모달 스타일 */
+.broker-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: flex-end;
+  z-index: 1000;
+}
+
+.broker-modal {
+  background: var(--color-surface);
+  width: 100%;
+  padding: 24px;
+  border-radius: 20px 20px 0 0;
+  animation: slideUp 0.3s ease-out;
+}
+
+.broker-modal__title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.broker-modal__desc {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-bottom: 24px;
+}
+
+.broker-modal__list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 40vh;
+  overflow-y: auto;
+  margin-bottom: 24px;
+}
+
+.broker-modal__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.broker-modal__item input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.broker-modal__name {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.broker-modal__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}

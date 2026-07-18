@@ -1,0 +1,32 @@
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.card--selected {
+  background: var(--color-primary-100);
+  border-color: var(--color-primary-600);
+  box-shadow: 0 0 0 2px var(--color-primary-600);
+}
+
+.card--sunken {
+  background: var(--color-surface-sunken);
+  border-color: transparent;
+  opacity: 0.7;
+}
+
+.card--clickable {
+  cursor: pointer;
+  min-height: var(--size-touch-min);
+}
+
+.card--clickable:hover {
+  border-color: var(--color-primary-600);
+}
+
+.card--clickable:active {
+  transform: scale(0.98);
+}
