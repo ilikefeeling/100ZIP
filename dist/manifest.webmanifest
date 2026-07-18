@@ -1,0 +1,1 @@
+{"name":"건물주 앱","short_name":"건물주","description":"어르신 건물주를 위한 쉬운 임대관리 앱","start_url":"/","display":"standalone","background_color":"#ffffff","theme_color":"#ffffff","lang":"en","scope":"/","icons":[{"src":"icon.png","sizes":"512x512","type":"image/png"},{"src":"icon.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}

@@ -12,6 +12,9 @@ export default defineConfig({
         short_name: '건물주',
         description: '어르신 건물주를 위한 쉬운 임대관리 앱',
         theme_color: '#ffffff',
+        background_color: '#ffffff',
+        display: 'standalone',
+        start_url: '/',
         icons: [
           {
             src: 'icon.png',
