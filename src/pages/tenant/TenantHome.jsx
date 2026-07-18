@@ -39,8 +39,9 @@ export default function TenantHome() {
         <div className="page-content tenant-home--empty">
           <div className="tenant-home__greeting" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '24px' }}>
             <div>
-              <h1 className="tenant-home__hello">
-                안녕하세요, <strong>{user?.name || '임차인'}</strong>님
+              <h1 className="tenant-home__hello" style={{ lineHeight: '1.2' }}>
+                <span style={{ fontSize: '16px', fontWeight: '500', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '6px' }}>안녕하세요,</span>
+                <strong>{user?.name || '임차인'}</strong>님
               </h1>
             </div>
             <button
@@ -84,8 +85,9 @@ export default function TenantHome() {
       <div className="page-content tenant-home">
         <div className="tenant-home__greeting" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <h1 className="tenant-home__hello">
-              안녕하세요, <strong>{user?.name || '임차인'}</strong>님
+            <h1 className="tenant-home__hello" style={{ lineHeight: '1.2' }}>
+              <span style={{ fontSize: '16px', fontWeight: '500', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '6px' }}>안녕하세요,</span>
+              <strong>{user?.name || '임차인'}</strong>님
             </h1>
             <p className="tenant-home__sub">{myBuilding.address} {myUnit.unitNumber}</p>
           </div>

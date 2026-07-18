@@ -32,8 +32,9 @@ export default function LandlordHome() {
         {/* 인사말 */}
         <div className="ll-home__greeting" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h1 className="ll-home__hello">
-              안녕하세요, <strong>{user?.name || '건물주'}</strong>님
+            <h1 className="ll-home__hello" style={{ lineHeight: '1.2' }}>
+              <span style={{ fontSize: '16px', fontWeight: '500', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '6px' }}>안녕하세요,</span>
+              <strong>{user?.name || '건물주'}</strong>님
             </h1>
             <p className="ll-home__sub">오늘도 편안한 관리 되세요</p>
           </div>
