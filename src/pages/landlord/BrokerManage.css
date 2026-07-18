@@ -55,9 +55,15 @@
   gap: 4px;
 }
 
-.broker-item__name {
+.broker-item__office {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--color-primary-600);
+}
+
+.broker-item__name {
+  font-size: 15px;
+  font-weight: 500;
   color: var(--color-text-primary);
 }
 

@@ -99,7 +99,7 @@ const usePropertyStore = create((set, get) => ({
     await deleteDoc(docRef);
   },
 
-  // ──── 단골 중개사 ────
+  // ──── 주거래 중개사사무소 ────
   addBroker: async (buildingId, brokerData) => {
     const docRef = doc(db, 'buildings', buildingId);
     const docSnap = await getDoc(docRef);
@@ -112,6 +112,19 @@ const usePropertyStore = create((set, get) => ({
     const newBroker = { id: brokerId, ...brokerData, createdAt: new Date().toISOString() };
     
     await updateDoc(docRef, { brokers: [...brokers, newBroker] });
+  },
+
+  getAllBrokerOffices: () => {
+    const buildings = get().buildings;
+    const offices = new Set();
+    buildings.forEach(b => {
+      if (b.brokers) {
+        b.brokers.forEach(brk => {
+          if (brk.officeName) offices.add(brk.officeName);
+        });
+      }
+    });
+    return Array.from(offices);
   },
 
   removeBroker: async (buildingId, brokerId) => {

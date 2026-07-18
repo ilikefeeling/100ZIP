@@ -17,6 +17,13 @@ export default function RentDetail() {
   const unit = usePropertyStore((s) => s.getUnit(buildingId, unitId));
   const building = usePropertyStore((s) => s.getBuilding(buildingId));
 
+  // Hook rules require this to be before any early return
+  const [mockRecords, setMockRecords] = useState([
+    { id: 1, month: '7월', status: '미납', amount: 0, date: '-', lastSentDate: null, reminderCount: 0 },
+    { id: 2, month: '6월', status: '납부완료', amount: 0, date: '06.25', lastSentDate: null, reminderCount: 0 },
+    { id: 3, month: '5월', status: '납부완료', amount: 0, date: '05.26', lastSentDate: null, reminderCount: 0 },
+  ]);
+
   if (!unit || !unit.contract) {
     return (
       <div className="page">
@@ -31,12 +38,8 @@ export default function RentDetail() {
   const contract = unit.contract;
   const rentTotal = (contract.monthlyRent || 0) + (contract.maintenanceFee || 0);
 
-  // Mock 납부 이력 (최근 3개월) - 수동 처리를 위해 state로 변환
-  const [mockRecords, setMockRecords] = useState([
-    { id: 1, month: '7월', status: '미납', amount: rentTotal, date: '-' },
-    { id: 2, month: '6월', status: '납부완료', amount: rentTotal, date: '06.25' },
-    { id: 3, month: '5월', status: '납부완료', amount: rentTotal, date: '05.26' },
-  ]);
+  // Update mock records with actual amounts dynamically
+  const records = mockRecords.map(r => ({ ...r, amount: rentTotal }));
 
   const handleMarkAsPaid = (id) => {
     if (window.confirm('실제 통장 입금 내역을 확인하셨나요?\n[납부 완료] 상태로 변경합니다.')) {
@@ -48,6 +51,53 @@ export default function RentDetail() {
 
   const handleReceipt = (record) => {
     alert(`${record.month} 납부금(${record.amount.toLocaleString()}원)에 대한 영수증을 생성했습니다!\n\n(※ 실제 서비스에서는 카카오톡 전송 또는 이미지 저장 기능이 실행됩니다.)`);
+  };
+
+  // 미납 타겟 찾기 및 쿨타임/횟수 제한/시간 제한 계산
+  const targetRecord = records.find(r => r.status === '미납');
+  let isCooldown = false;
+  let isMaxCount = false;
+  let isOutsideAllowedTime = false;
+  let buttonText = '미납 독촉 알림 보내기';
+  
+  if (targetRecord) {
+    const currentHour = new Date().getHours();
+    
+    if (currentHour < 9 || currentHour >= 20) {
+      isOutsideAllowedTime = true;
+      buttonText = '심야 발송 제한 (09:00~20:00 가능)';
+    } else if (targetRecord.reminderCount >= 3) {
+      isMaxCount = true;
+      buttonText = '월 최대 발송 횟수(3회) 초과';
+    } else if (targetRecord.lastSentDate) {
+      const lastDate = new Date(targetRecord.lastSentDate);
+      const now = new Date();
+      const diffTime = now.getTime() - lastDate.getTime();
+      const cooldownMs = 3 * 24 * 60 * 60 * 1000; // 3일
+      
+      if (diffTime < cooldownMs) {
+        isCooldown = true;
+        const daysLeft = Math.ceil((cooldownMs - diffTime) / (1000 * 60 * 60 * 24));
+        buttonText = `[쿨타임 중] ${daysLeft}일 후 재발송 가능`;
+      }
+    }
+  }
+
+  const handleSendReminder = () => {
+    if (!targetRecord) return;
+    if (isOutsideAllowedTime) {
+      alert('09:00부터 20:00까지만 독촉 알림을 발송할 수 있습니다.');
+      return;
+    }
+    
+    alert(`[카카오톡 발송 미리보기]\n\n${contract.tenantName}님, ${targetRecord.month} 임차료 ${rentTotal.toLocaleString()}원이 미납되었습니다. 빠른 납부 부탁드립니다.\n\n(※ 실제로는 부드러운 어조의 카카오톡 알림톡이 전송됩니다.)`);
+    
+    // 발송 이력 업데이트
+    setMockRecords(mockRecords.map(r => 
+      r.id === targetRecord.id 
+        ? { ...r, lastSentDate: new Date().toISOString(), reminderCount: r.reminderCount + 1 }
+        : r
+    ));
   };
 
   return (
@@ -78,7 +128,7 @@ export default function RentDetail() {
         <div className="rent-detail__history">
           <h3 className="rent-detail__history-title">납부 이력</h3>
           <div className="rent-detail__list">
-            {mockRecords.map((record) => (
+            {records.map((record) => (
               <div key={record.id} className="rent-detail__item" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div className="rent-detail__item-left">
@@ -95,6 +145,13 @@ export default function RentDetail() {
                     />
                   </div>
                 </div>
+                
+                {/* 마지막 발송일 표시 */}
+                {record.lastSentDate && (
+                  <div style={{ fontSize: '13px', color: 'var(--color-text-tertiary)', marginTop: '8px', textAlign: 'right' }}>
+                    마지막 알림: {new Date(record.lastSentDate).toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} ({record.reminderCount}/3회)
+                  </div>
+                )}
                 
                 {/* 액션 버튼 영역 */}
                 <div style={{ display: 'flex', gap: '8px', marginTop: '12px', justifyContent: 'flex-end' }}>
@@ -120,14 +177,13 @@ export default function RentDetail() {
           </div>
         </div>
 
-        {/* 하단 독촉 버튼 (미납이 있는 경우만 활성화) */}
         <div className="rent-detail__footer">
           <Button
-            variant={mockRecords.some(r => r.status === '미납') ? 'accent' : 'secondary'}
-            disabled={!mockRecords.some(r => r.status === '미납')}
-            onClick={() => alert(`[카카오톡 발송 미리보기]\n\n${contract.tenantName}님, ${mockRecords.find(r => r.status === '미납')?.month} 임차료 ${rentTotal.toLocaleString()}원이 미납되었습니다. 빠른 납부 부탁드립니다.\n\n(※ 실제로는 부드러운 어조의 카카오톡 알림톡이 전송됩니다.)`)}
+            variant={targetRecord && !isCooldown && !isMaxCount && !isOutsideAllowedTime ? 'accent' : 'secondary'}
+            disabled={!targetRecord || isCooldown || isMaxCount || isOutsideAllowedTime}
+            onClick={handleSendReminder}
           >
-            미납 독촉 알림 보내기
+            {targetRecord ? buttonText : '미납 독촉 알림 보내기'}
           </Button>
         </div>
       </div>

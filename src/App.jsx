@@ -29,6 +29,7 @@ const UnitDetail = lazy(() => import('./pages/landlord/UnitDetail'));
 const ContractRegister = lazy(() => import('./pages/landlord/ContractRegister'));
 const ContractEdit = lazy(() => import('./pages/landlord/ContractEdit'));
 const KitWizard = lazy(() => import('./pages/landlord/KitWizard'));
+const SignedKitView = lazy(() => import('./pages/landlord/SignedKitView'));
 const RentList = lazy(() => import('./pages/landlord/RentList'));
 const RentDetail = lazy(() => import('./pages/landlord/RentDetail'));
 const RentAdjust = lazy(() => import('./pages/landlord/RentAdjust'));
@@ -48,6 +49,8 @@ const TenantMoveOutSettle = lazy(() => import('./pages/tenant/TenantMoveOutSettl
 // Common pages
 const Notifications = lazy(() => import('./pages/Notifications'));
 
+import { initKakao } from './utils/kakao';
+
 /**
  * 건물주 앱 루트 컴포넌트
  * 라우팅 구조는 01_ia.md의 화면ID 체계를 따릅니다.
@@ -58,6 +61,10 @@ export default function App() {
   const initPropertyListener = usePropertyStore((s) => s.initListener);
   const clearPropertyStore = usePropertyStore((s) => s.clearStore);
   const fontScale = useSettingsStore((s) => s.fontScale);
+
+  useEffect(() => {
+    initKakao();
+  }, []);
 
   useEffect(() => {
     document.documentElement.dataset.fontScale = fontScale;
@@ -104,6 +111,7 @@ export default function App() {
             <Route path="/landlord/buildings/:buildingId/units/:unitId/contract/new" element={<ContractRegister />} />
             <Route path="/landlord/buildings/:buildingId/units/:unitId/contract/edit" element={<ContractEdit />} />
             <Route path="/landlord/buildings/:buildingId/units/:unitId/kit/new" element={<KitWizard />} />
+            <Route path="/landlord/buildings/:buildingId/units/:unitId/signed-kit" element={<SignedKitView />} />
             
             {/* Placeholder routes for Phase 3+ */}
             <Route path="/landlord/contracts" element={<PlaceholderPage title="계약 관리 (Phase 3)" />} />

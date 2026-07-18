@@ -173,24 +173,29 @@ export default function LandlordHome() {
           </div>
         )}
 
-        {/* 바이럴 배너: 건물주 친구에게 추천하기 */}
+        {/* 바이럴 배너: 주변 건물주에게 앱 알려주기 */}
         <div style={{ marginTop: '32px', marginBottom: '80px' }}>
           <Card>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '16px 8px' }}>
 
-              <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '8px' }}>건물주 친구에게 추천하기</h3>
+              <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '8px' }}>주변 건물주에게 앱 알려주기</h3>
               <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '20px', lineHeight: '1.5' }}>
                 혼자 쓰기 아까운 계약 관리 앱!<br/>
-                주변 건물주나 중개사에게 소개해주세요.
+                주변 건물주나 중개사에게 알려주세요.
               </p>
               <button
                 onClick={() => {
-                  const text = '[건물주를 위한 스마트 임대관리]\n임대차 계약부터 입주 안내까지, 폰 하나로 5분 만에 끝내는 최고의 앱을 소개합니다!\n\n🔗 링크: https://app.example.com';
-                  navigator.clipboard.writeText(text);
-                  alert('초대 메시지가 복사되었습니다! 카카오톡으로 전달해보세요.');
+                  import('../../utils/kakao').then(({ shareToKakao }) => {
+                    shareToKakao({
+                      title: '100집 - 건물주를 위한 스마트 임대관리',
+                      description: '임대차 계약부터 입주 안내까지, 폰 하나로 5분 만에 끝내는 최고의 앱을 소개합니다!',
+                      imageUrl: 'https://100zip.com/icon.png',
+                      link: 'https://100zip.com'
+                    });
+                  });
                 }}
                 style={{
-                  background: 'var(--color-primary)',
+                  background: 'var(--color-primary-600)',
                   color: 'white',
                   border: 'none',
                   borderRadius: 'var(--radius-button)',
@@ -201,7 +206,7 @@ export default function LandlordHome() {
                   width: '100%'
                 }}
               >
-                카톡으로 초대장 보내기
+                카톡으로 알려주기
               </button>
             </div>
           </Card>

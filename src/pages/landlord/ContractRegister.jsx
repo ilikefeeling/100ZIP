@@ -16,7 +16,9 @@ import './ContractRegister.css';
 export default function ContractRegister() {
   const navigate = useNavigate();
   const { buildingId, unitId } = useParams();
+  const getBuilding = usePropertyStore((s) => s.getBuilding);
   const addContract = usePropertyStore((s) => s.addContract);
+  const getAllBrokerOffices = usePropertyStore((s) => s.getAllBrokerOffices);
 
   const [step, setStep] = useState(1);
   const totalSteps = 5;
@@ -24,18 +26,28 @@ export default function ContractRegister() {
   const [tenantName, setTenantName] = useState('');
   const [tenantPhone, setTenantPhone] = useState('');
   const [deposit, setDeposit] = useState('');
-  const [rent, setRent] = useState('');
+  const [monthlyRent, setMonthlyRent] = useState('');
   const [maintenanceFee, setMaintenanceFee] = useState('');
-  const [rentPaymentType, setRentPaymentType] = useState('prepaid'); // 'prepaid' | 'postpaid'
-  const [contractDate, setContractDate] = useState(new Date().toISOString().split('T')[0]);
+  const [rentPaymentType, setRentPaymentType] = useState('prepaid'); // prepaid, postpaid
+  const [contractDate, setContractDate] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [periodType, setPeriodType] = useState('1year');
+  const [periodType, setPeriodType] = useState('custom');
 
   const [brokerName, setBrokerName] = useState('');
   const [brokerPhone, setBrokerPhone] = useState('');
   const [brokerFee, setBrokerFee] = useState('');
   const [isBrokerFeePaid, setIsBrokerFeePaid] = useState(false);
+
+  const [existingOffices, setExistingOffices] = useState([]);
+
+  useEffect(() => {
+    const offices = getAllBrokerOffices();
+    if (!offices.includes('임대인 직접 진행')) {
+      offices.unshift('임대인 직접 진행');
+    }
+    setExistingOffices(offices);
+  }, [getAllBrokerOffices]);
 
   const calculateEndDate = (start, years) => {
     if (!start) return '';
@@ -290,13 +302,36 @@ export default function ContractRegister() {
           <div className="contract-reg__step" key="s5">
             <h2 className="contract-reg__question">중개사무소 정보 (선택)</h2>
             <div className="contract-reg__inputs">
-              <input
-                className="contract-reg__input"
-                placeholder="부동산 이름 (예: 황금공인중개사)"
-                value={brokerName}
-                onChange={(e) => setBrokerName(e.target.value)}
-                autoFocus
-              />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <select 
+                  className="contract-reg__input"
+                  style={{ flex: 1, appearance: 'auto' }}
+                  value={existingOffices.includes(brokerName) ? brokerName : '직접 입력'}
+                  onChange={(e) => {
+                    if (e.target.value !== '직접 입력') {
+                      setBrokerName(e.target.value);
+                    } else {
+                      setBrokerName('');
+                    }
+                  }}
+                >
+                  <option value="" disabled>사무소 선택</option>
+                  {existingOffices.map((office, idx) => (
+                    <option key={idx} value={office}>{office}</option>
+                  ))}
+                  <option value="직접 입력">직접 입력...</option>
+                </select>
+                
+                {(!existingOffices.includes(brokerName) || brokerName === '') && (
+                  <input
+                    className="contract-reg__input"
+                    style={{ flex: 1 }}
+                    placeholder="직접 입력"
+                    value={brokerName}
+                    onChange={(e) => setBrokerName(e.target.value)}
+                  />
+                )}
+              </div>
               <input
                 className="contract-reg__input"
                 type="tel"

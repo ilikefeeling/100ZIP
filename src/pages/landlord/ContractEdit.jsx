@@ -12,6 +12,7 @@ export default function ContractEdit() {
   const { buildingId, unitId } = useParams();
   const getBuilding = usePropertyStore((s) => s.getBuilding);
   const updateContract = usePropertyStore((s) => s.updateContract);
+  const getAllBrokerOffices = usePropertyStore((s) => s.getAllBrokerOffices);
 
   const [loading, setLoading] = useState(true);
   const [tenantName, setTenantName] = useState('');
@@ -29,6 +30,16 @@ export default function ContractEdit() {
   const [brokerPhone, setBrokerPhone] = useState('');
   const [brokerFee, setBrokerFee] = useState('');
   const [isBrokerFeePaid, setIsBrokerFeePaid] = useState(false);
+  
+  const [existingOffices, setExistingOffices] = useState([]);
+
+  useEffect(() => {
+    const offices = getAllBrokerOffices();
+    if (!offices.includes('임대인 직접 진행')) {
+      offices.unshift('임대인 직접 진행');
+    }
+    setExistingOffices(offices);
+  }, [getAllBrokerOffices]);
 
   useEffect(() => {
     const building = getBuilding(buildingId);
@@ -282,12 +293,42 @@ export default function ContractEdit() {
           <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px' }}>중개사무소 정보 (선택)</h3>
           <div className="form-group">
             <label>부동산 이름</label>
-            <input 
-              type="text" 
-              value={brokerName} 
-              onChange={(e) => setBrokerName(e.target.value)} 
-              placeholder="예: 황금공인중개사" 
-            />
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <select 
+                style={{ 
+                  flex: 1, 
+                  padding: '16px', 
+                  border: '1px solid var(--color-border)', 
+                  borderRadius: 'var(--radius-input)', 
+                  fontSize: '16px', 
+                  backgroundColor: 'var(--color-surface)' 
+                }}
+                value={existingOffices.includes(brokerName) ? brokerName : '직접 입력'}
+                onChange={(e) => {
+                  if (e.target.value !== '직접 입력') {
+                    setBrokerName(e.target.value);
+                  } else {
+                    setBrokerName('');
+                  }
+                }}
+              >
+                <option value="" disabled>사무소 선택</option>
+                {existingOffices.map((office, idx) => (
+                  <option key={idx} value={office}>{office}</option>
+                ))}
+                <option value="직접 입력">직접 입력...</option>
+              </select>
+              
+              {(!existingOffices.includes(brokerName) || brokerName === '') && (
+                <input 
+                  type="text" 
+                  style={{ flex: 1, padding: '16px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-input)', fontSize: '16px', backgroundColor: 'var(--color-surface)' }}
+                  value={brokerName} 
+                  onChange={(e) => setBrokerName(e.target.value)} 
+                  placeholder="예: 황금공인중개사" 
+                />
+              )}
+            </div>
           </div>
           <div className="form-group">
             <label>중개사 연락처</label>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import usePropertyStore from '../../stores/propertyStore';
 import TopBar from '../../components/TopBar';
@@ -12,39 +12,60 @@ export default function BrokerManage() {
   const building = usePropertyStore(s => s.getBuilding(buildingId));
   const addBroker = usePropertyStore(s => s.addBroker);
   const removeBroker = usePropertyStore(s => s.removeBroker);
+  const getAllBrokerOffices = usePropertyStore(s => s.getAllBrokerOffices);
 
   const [isAdding, setIsAdding] = useState(false);
+  const [officeName, setOfficeName] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  
+  const [existingOffices, setExistingOffices] = useState([]);
+
+  useEffect(() => {
+    // 임대인이 등록한 모든 사무소명 가져오기 (초기 로드 시)
+    const offices = getAllBrokerOffices();
+    // '임대인 직거래' 옵션이 없으면 추가
+    if (!offices.includes('임대인 직거래')) {
+      offices.unshift('임대인 직거래');
+    }
+    setExistingOffices(offices);
+  }, [getAllBrokerOffices]);
 
   if (!building) return null;
 
   const brokers = building.brokers || [];
 
   const handleAdd = async () => {
-    if (!name || !phone) {
-      alert('이름과 연락처를 입력해주세요.');
+    if (!officeName || !phone) {
+      alert('사무소명(또는 직거래)과 연락처를 입력해주세요.');
       return;
     }
-    await addBroker(buildingId, { name, phone });
+    await addBroker(buildingId, { officeName, name, phone });
+    
+    // 로컬 상태 업데이트
+    if (!existingOffices.includes(officeName)) {
+      setExistingOffices([...existingOffices, officeName]);
+    }
+    
+    setOfficeName('');
     setName('');
     setPhone('');
     setIsAdding(false);
   };
 
   const handleRemove = async (brokerId) => {
-    if (window.confirm('이 단골 중개사를 삭제하시겠습니까?')) {
+    if (window.confirm('이 주거래 중개사를 삭제하시겠습니까?')) {
       await removeBroker(buildingId, brokerId);
     }
   };
 
   return (
     <div className="page broker-manage">
-      <TopBar title="단골 중개사 관리" onBack={() => navigate(-1)} />
+      <TopBar title="주거래 중개사사무소 관리" onBack={() => navigate(-1)} />
       
       <div className="page-content">
         <div className="broker-manage__header">
-          <h2 className="broker-manage__title">내 단골 중개사 목록</h2>
+          <h2 className="broker-manage__title">내 주거래 중개사사무소</h2>
           <p className="broker-manage__desc">
             공실이 발생했을 때 한 번에 방을 내놓을 수 있습니다.
           </p>
@@ -72,8 +93,8 @@ export default function BrokerManage() {
           {brokers.length === 0 ? (
             <Card>
               <div className="broker-manage__empty">
-                아직 등록된 단골 중개사가 없습니다.<br/>
-                + 버튼을 눌러 중개사를 추가해보세요.
+                아직 등록된 주거래 중개사사무소가 없습니다.<br/>
+                + 버튼을 눌러 추가해보세요.
               </div>
             </Card>
           ) : (
@@ -81,7 +102,8 @@ export default function BrokerManage() {
               <Card key={broker.id}>
                 <div className="broker-item">
                   <div className="broker-item__info">
-                    <span className="broker-item__name">{broker.name}</span>
+                    <span className="broker-item__office">{broker.officeName}</span>
+                    {broker.name && <span className="broker-item__name">{broker.name}</span>}
                     <span className="broker-item__phone">{broker.phone}</span>
                   </div>
                   <button 
@@ -98,21 +120,54 @@ export default function BrokerManage() {
 
         {!isAdding ? (
           <button className="broker-manage__add-btn" onClick={() => setIsAdding(true)}>
-            + 단골 중개사 추가하기
+            + 주거래 중개사사무소 추가
           </button>
         ) : (
           <Card>
             <div className="broker-manage__add-form">
-              <h3 className="broker-manage__add-title">새 중개사 등록</h3>
+              <h3 className="broker-manage__add-title">새 주거래처 등록</h3>
+              
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                <select 
+                  className="broker-manage__input"
+                  style={{ flex: 1 }}
+                  value={existingOffices.includes(officeName) ? officeName : '직접 입력'}
+                  onChange={(e) => {
+                    if (e.target.value !== '직접 입력') {
+                      setOfficeName(e.target.value);
+                    } else {
+                      setOfficeName('');
+                    }
+                  }}
+                >
+                  <option value="" disabled>사무소 선택</option>
+                  {existingOffices.map((office, idx) => (
+                    <option key={idx} value={office}>{office}</option>
+                  ))}
+                  <option value="직접 입력">직접 입력...</option>
+                </select>
+                
+                {/* 직접 입력 시에만 텍스트 인풋 표시 */}
+                {(!existingOffices.includes(officeName) || officeName === '') && (
+                  <input 
+                    className="broker-manage__input"
+                    style={{ flex: 1 }}
+                    placeholder="사무소명 직접 입력"
+                    value={officeName}
+                    onChange={(e) => setOfficeName(e.target.value)}
+                  />
+                )}
+              </div>
+
               <input 
                 className="broker-manage__input"
-                placeholder="중개사(부동산) 이름"
+                placeholder="담당자 이름 (선택)"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
               <input 
                 className="broker-manage__input"
-                placeholder="연락처 (예: 010-1234-5678)"
+                placeholder="연락처 (필수, 예: 010-1234-5678)"
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}

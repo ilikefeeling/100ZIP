@@ -48,7 +48,7 @@
   background: var(--color-surface-sunken);
 }
 
-.top-bar__title {
+.topbar__title {
   font: var(--font-heading-2);
   color: var(--color-text-primary);
   text-align: center;

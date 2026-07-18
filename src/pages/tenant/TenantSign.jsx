@@ -81,10 +81,16 @@ export default function TenantSign() {
   };
 
   const handleSubmit = async () => {
+    const canvas = canvasRef.current;
+    // 배경을 흰색으로 하고 이미지를 추출할 수도 있지만, 현재는 투명 배경 PNG로 저장
+    const signatureDataUrl = canvas.toDataURL('image/png');
+
     // 1. 서명 상태 업데이트
     await updateContract(myBuilding.id, myUnit.id, {
       tenantSigned: true,
-      status: '확정' // 쌍방 서명 완료로 간주
+      status: '확정', // 쌍방 서명 완료로 간주
+      signatureDataUrl: signatureDataUrl,
+      signedAt: new Date().toISOString()
     });
     // 2. 홈으로 이동
     alert('전자서명이 완료되었습니다.\n입주를 환영합니다! 🎉');

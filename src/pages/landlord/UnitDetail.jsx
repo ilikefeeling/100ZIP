@@ -288,7 +288,7 @@ export default function UnitDetail() {
               <Button variant="primary" onClick={() => navigate(`/landlord/buildings/${buildingId}/units/${unitId}/rent`)}>
                 보증금 및 월세 납부 현황 보기
               </Button>
-              <Button variant="secondary" onClick={() => alert('세입자 서명 원본 확인 및 입주 안내문 조회 기능은 준비중입니다.')}>
+              <Button variant="secondary" onClick={() => navigate(`/landlord/buildings/${buildingId}/units/${unitId}/signed-kit`)}>
                 서명 완료된 입주안내문 확인
               </Button>
               <Button variant="secondary" onClick={() => navigate(`/landlord/buildings/${buildingId}/units/${unitId}/rent/adjust`)}>
