@@ -143,17 +143,10 @@ const useAuthStore = create((set, get) => ({
       provider.addScope('profile_nickname');
       provider.addScope('profile_image');
 
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-      if (isMobile) {
-        sessionStorage.setItem('pendingRole', role);
-        await signInWithRedirect(auth, provider);
-        // Will not reach here usually, as it redirects
-        return { isRedirect: true };
-      } else {
-        const result = await signInWithPopup(auth, provider);
-        return await get().handleAuthResult(result, role);
-      }
+      // 모바일 환경에서도 리다이렉트 대신 팝업 방식(signInWithPopup)으로 통일합니다.
+      // 리다이렉트 방식이 특정 브라우저/프록시 환경에서 세션 유실이나 무한 로딩을 유발하기 때문입니다.
+      const result = await signInWithPopup(auth, provider);
+      return await get().handleAuthResult(result, role);
     } catch (error) {
       console.error("Kakao Login Error:", error);
       throw error;
