@@ -20,11 +20,19 @@ export default function Login() {
 
     try {
       const userData = await loginWithKakao(role);
+      
+      if (userData?.isRedirect) {
+        // 리다이렉트 발생 시 UI를 계속 '로그인 중...'으로 유지하기 위해 여기서 종료합니다.
+        return;
+      }
+
       if (!userData.phone || userData.phone === '010-0000-0000') {
         navigate('/phone-verification', { replace: true, state: { role } });
       } else {
         navigate('/', { replace: true });
       }
+      
+      setLoading(false);
     } catch (e) {
       console.error("Detailed Kakao Login Error:", e);
       console.dir(e); // 객체의 내부 속성(customData 등)을 확장해서 볼 수 있게 합니다.
@@ -32,7 +40,6 @@ export default function Login() {
         console.log("Error Custom Data:", e.customData);
       }
       setError(`카카오 로그인 실패: ${e.message || '다시 시도해주세요.'}`);
-    } finally {
       setLoading(false);
     }
   };
