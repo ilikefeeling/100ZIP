@@ -43,6 +43,7 @@ export default defineConfig({
     }
   },
   server: {
+    host: true, // 로컬 네트워크(Wi-Fi) IP 주소 노출
     port: 3000,
     open: true,
   },

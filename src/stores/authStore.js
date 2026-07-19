@@ -15,14 +15,18 @@ const useAuthStore = create((set, get) => ({
 
   initAuthListener: async () => {
     try {
-      const result = await getRedirectResult(auth);
+      // 3초 이상 응답이 없으면 타임아웃 발생시켜 무한 로딩 방지
+      const result = await Promise.race([
+        getRedirectResult(auth),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Redirect timeout")), 3000))
+      ]);
       if (result) {
         const role = sessionStorage.getItem('pendingRole') || 'landlord';
         sessionStorage.removeItem('pendingRole');
         await get().handleAuthResult(result, role);
       }
     } catch (e) {
-      console.error("Redirect Result Error:", e);
+      console.warn("Redirect Result Error or Timeout:", e);
     }
 
     onAuthStateChanged(auth, async (firebaseUser) => {

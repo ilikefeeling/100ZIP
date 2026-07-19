@@ -11,6 +11,11 @@ export default function InstallPwaPrompt() {
       return;
     }
 
+    // 이미 팝업을 닫은 적이 있다면 다시 띄우지 않음
+    if (localStorage.getItem('pwaPromptDismissed') === 'true') {
+      return;
+    }
+
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isIOS = /iphone|ipad|ipod/.test(userAgent);
     const isAndroid = /android/.test(userAgent);
@@ -36,6 +41,11 @@ export default function InstallPwaPrompt() {
     };
   }, []);
 
+  const closePrompt = () => {
+    localStorage.setItem('pwaPromptDismissed', 'true');
+    setShowPrompt(false);
+  };
+
   const handleInstallClick = () => {
     if (os === 'android-native' && window.deferredPrompt) {
       window.deferredPrompt.prompt();
@@ -46,11 +56,11 @@ export default function InstallPwaPrompt() {
           console.log('User dismissed the A2HS prompt');
         }
         window.deferredPrompt = null;
-        setShowPrompt(false);
+        closePrompt();
       });
     } else {
       // 안내창은 버튼 클릭 시 닫기
-      setShowPrompt(false);
+      closePrompt();
     }
   };
 
@@ -61,7 +71,7 @@ export default function InstallPwaPrompt() {
       <div className="pwa-prompt-modal">
         <div className="pwa-prompt-header">
           <h3>앱 설치 안내</h3>
-          <button className="pwa-prompt-close" onClick={() => setShowPrompt(false)}>✕</button>
+          <button className="pwa-prompt-close" onClick={closePrompt}>✕</button>
         </div>
         <div className="pwa-prompt-body">
           <p>더 빠르고 편리하게 앱을 이용하시려면,<br/>바탕화면(홈 화면)에 추가해주세요!</p>
