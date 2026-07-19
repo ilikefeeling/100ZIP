@@ -30,35 +30,41 @@ const useAuthStore = create((set, get) => ({
     }
 
     onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        const userDocRef = doc(db, 'users', firebaseUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
+      try {
+        if (firebaseUser) {
+          const userDocRef = doc(db, 'users', firebaseUser.uid);
+          const userDoc = await getDoc(userDocRef);
+          
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            set({
+              isLoggedIn: true,
+              user: { uid: firebaseUser.uid, email: firebaseUser.email, photoURL: firebaseUser.photoURL, ...userData },
+              role: userData.role || null,
+              isAuthReady: true,
+              // isFirstLogin: false 제거 (handleAuthResult에서 설정한 값 유지)
+            });
+          } else {
+            set({
+              isLoggedIn: true,
+              user: { uid: firebaseUser.uid, email: firebaseUser.email, photoURL: firebaseUser.photoURL },
+              role: null,
+              isAuthReady: true,
+            });
+          }
+        } else {
           set({
-            isLoggedIn: true,
-            user: { uid: firebaseUser.uid, email: firebaseUser.email, photoURL: firebaseUser.photoURL, ...userData },
-            role: userData.role || null,
+            isLoggedIn: false,
+            user: null,
+            role: null,
             isAuthReady: true,
             isFirstLogin: false,
           });
-        } else {
-          set({
-            isLoggedIn: true,
-            user: { uid: firebaseUser.uid, email: firebaseUser.email, photoURL: firebaseUser.photoURL },
-            role: null,
-            isAuthReady: true,
-          });
         }
-      } else {
-        set({
-          isLoggedIn: false,
-          user: null,
-          role: null,
-          isAuthReady: true,
-          isFirstLogin: false,
-        });
+      } catch (error) {
+        console.error("Auth state change error:", error);
+        // 에러가 발생해도 로딩은 끝나야 하므로 isAuthReady를 true로 설정
+        set({ isAuthReady: true, isLoggedIn: false });
       }
     });
   },
