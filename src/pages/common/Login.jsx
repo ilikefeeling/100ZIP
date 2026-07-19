@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '../../stores/authStore';
 import Button from '../../components/Button';
@@ -10,9 +10,20 @@ export default function Login() {
   const location = useLocation();
   const role = location.state?.role || 'landlord';
   
-  const { loginWithKakao, isFirstLogin } = useAuthStore();
+  const { loginWithKakao, isFirstLogin, isLoggedIn, isAuthReady, user } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // 이미 로그인된 상태(리다이렉트 복귀 포함)라면 즉시 홈이나 폰 인증 화면으로 이동
+  useEffect(() => {
+    if (isAuthReady && isLoggedIn && user) {
+      if (!user.phone || user.phone === '010-0000-0000') {
+        navigate('/phone-verification', { replace: true, state: { role: user.role || role } });
+      } else {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [isAuthReady, isLoggedIn, user, navigate, role]);
 
   const handleKakaoLogin = async () => {
     setLoading(true);
