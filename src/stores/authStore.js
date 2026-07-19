@@ -15,10 +15,10 @@ const useAuthStore = create((set, get) => ({
 
   initAuthListener: async () => {
     try {
-      // 3초 이상 응답이 없으면 타임아웃 발생시켜 무한 로딩 방지
+      // 모바일 네트워크 지연을 고려하여 타임아웃을 15초로 넉넉하게 늘림
       const result = await Promise.race([
         getRedirectResult(auth),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("Redirect timeout")), 3000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Redirect timeout")), 15000))
       ]);
       if (result) {
         const role = sessionStorage.getItem('pendingRole') || 'landlord';
