@@ -10,19 +10,40 @@ import './Splash.css';
  */
 export default function Splash() {
   const navigate = useNavigate();
-  const { isLoggedIn, role, isAuthReady } = useAuthStore();
-  const [visible, setVisible] = useState(true);
+  const { isLoggedIn, role, isAuthReady, initAuthListener } = useAuthStore();
+  const [authError, setAuthError] = useState('');
 
   useEffect(() => {
-    // Firebase 인증 로딩이 완료될 때까지 대기
-    if (!isAuthReady) return;
+    // 앱 시작 시 인증 리스너 등록
+    initAuthListener().catch((err) => {
+      setAuthError(err.message || String(err));
+    });
+  }, [initAuthListener]);
+
+  useEffect(() => {
+    // 에러 발생 시 대기
+    if (authError || !isAuthReady) return;
 
     const timer = setTimeout(() => {
       if (isLoggedIn && role) {
         if (role === 'landlord') {
-          navigate('/landlord/home', { replace: true });
+          // 중개사 초대링크를 통한 가입인 경우 자동 락인 처리
+          const pendingOfficeId = sessionStorage.getItem('pendingBrokerOfficeId');
+          if (pendingOfficeId) {
+            sessionStorage.removeItem('pendingBrokerOfficeId');
+            sessionStorage.removeItem('pendingBrokerOfficeName');
+            navigate(`/invite/broker/${pendingOfficeId}`, { replace: true });
+          } else {
+            navigate('/landlord/home', { replace: true });
+          }
         } else if (role === 'broker') {
-          navigate('/broker/home', { replace: true });
+          // 중개사 인증(사업자등록) 여부 체크
+          const user = useAuthStore.getState().user;
+          if (user && user.isBrokerVerified) {
+            navigate('/broker/home', { replace: true });
+          } else {
+            navigate('/broker/register', { replace: true });
+          }
         } else {
           navigate('/tenant/home', { replace: true });
         }
@@ -45,9 +66,17 @@ export default function Splash() {
         <p style={{ fontSize: '18px', color: '#cbd5e1', marginTop: '8px', letterSpacing: '2px', fontWeight: '600' }}>100ZIP</p>
       </div>
       <div className="splash__loader">
-        <div className="splash__dot" />
-        <div className="splash__dot" />
-        <div className="splash__dot" />
+        {authError ? (
+          <div style={{ color: '#ef4444', marginTop: '20px', padding: '10px', background: 'rgba(255,255,255,0.9)', borderRadius: '8px', fontSize: '14px', maxWidth: '80%', wordBreak: 'break-all' }}>
+            인증 에러: {authError}
+          </div>
+        ) : (
+          <>
+            <div className="splash__dot" />
+            <div className="splash__dot" />
+            <div className="splash__dot" />
+          </>
+        )}
       </div>
     </div>
   );

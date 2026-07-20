@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import usePropertyStore from '../../stores/propertyStore';
 import useAuthStore from '../../stores/authStore';
+import { db } from '../../firebase';
+import { collection, addDoc } from 'firebase/firestore';
 import TopBar from '../../components/TopBar';
 import Card from '../../components/Card';
 import CurrencyDisplay from '../../components/CurrencyDisplay';
@@ -9,6 +11,7 @@ import StatusBadge from '../../components/StatusBadge';
 import Button from '../../components/Button';
 import { formatKoreanCurrency } from '../../utils/format';
 import { uploadCompressedImage } from '../../utils/imageUpload';
+import NotificationModal from '../../components/NotificationModal';
 import './UnitDetail.css';
 
 /**
@@ -28,6 +31,8 @@ export default function UnitDetail() {
   const [isBrokerModalOpen, setIsBrokerModalOpen] = useState(false);
   const [selectedBrokers, setSelectedBrokers] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [inviteLink, setInviteLink] = useState('');
 
   if (!unit) {
     return (
@@ -69,41 +74,19 @@ export default function UnitDetail() {
   const handleResendLink = async () => {
     const currentHour = new Date().getHours();
     if (currentHour < 9 || currentHour >= 20) {
-      alert('09:00부터 20:00까지만 알림톡/문자 발송이 가능합니다.\n야간 발송은 수신자의 불편을 초래할 수 있어 차단됩니다.');
+      alert('09:00부터 20:00까지만 알림톡 발송이 가능합니다.\n야간 발송은 수신자의 불편을 초래할 수 있어 차단됩니다.');
       return;
     }
 
     if (!checkRateLimit(contract?.lastNotifiedAt)) return;
 
-    const inviteLink = `${window.location.origin}/invite/${buildingId}/${unitId}`;
-    const tenantPhone = contract?.tenantPhone || '';
-    const message = `[건물주] ${building?.name || ''} ${unit?.unitNumber || ''} 입주키트(비밀번호, 이용안내)가 도착했습니다.\n링크를 눌러 확인해 주세요.\n${inviteLink}`;
+    const link = `${window.location.origin}/invite/${buildingId}/${unitId}`;
+    setInviteLink(link);
+    setIsModalOpen(true);
+  };
 
-    try {
-      await navigator.clipboard.writeText(message);
-    } catch (err) {}
-
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-    if (isMobile) {
-      if (navigator.share) {
-        try {
-          await navigator.share({
-            title: '입주키트 안내',
-            text: message
-          });
-        } catch (error) {
-          if (error.name !== 'AbortError') {
-            window.location.href = `sms:${tenantPhone.replace(/-/g, '')}?body=${encodeURIComponent(message)}`;
-          }
-        }
-      } else {
-        window.location.href = `sms:${tenantPhone.replace(/-/g, '')}?body=${encodeURIComponent(message)}`;
-      }
-    } else {
-      alert("초대 메시지가 복사되었습니다!\n\nPC를 사용 중이시네요. PC 카카오톡이나 메시지 앱 대화창에 '붙여넣기(Ctrl+V)' 해서 보내주시면 됩니다.");
-    }
-    
+  const onConfirmSend = async () => {
+    setIsModalOpen(false);
     await updateContract(buildingId, unitId, { lastNotifiedAt: new Date().toISOString() });
   };
 
@@ -323,7 +306,18 @@ export default function UnitDetail() {
                   <div className="unit-detail__row">
                     <span className="unit-detail__label">지급 상태</span>
                     <span className="unit-detail__value">
-                      {contract.broker.isPaid ? '지급 완료 (' + new Date(contract.broker.paidDate).toLocaleDateString() + ')' : '미지급'}
+                      {(() => {
+                        const status = contract.broker.status || (contract.broker.isPaid ? 'paid' : 'unpaid');
+                        if (status === 'paid') {
+                          return `지급 완료 (${new Date(contract.broker.paidDate).toLocaleDateString()})`;
+                        }
+                        if (status === 'scheduled') {
+                          const dateText = contract.broker.expectedPaidDate ? ` (예정일: ${contract.broker.expectedPaidDate})` : '';
+                          const notiText = contract.broker.isNotificationEnabled ? ' [임대인 알림 켬]' : '';
+                          return `지급 예정${dateText}${notiText}`;
+                        }
+                        return '미지급';
+                      })()}
                     </span>
                   </div>
                 </div>
@@ -333,7 +327,7 @@ export default function UnitDetail() {
                       중개사에게 전화하기
                     </Button>
                   )}
-                  {!contract.broker.isPaid && (
+                  {(contract.broker.status !== 'paid' && !contract.broker.isPaid) && (
                     <Button variant="accent" onClick={async () => {
                       const currentHour = new Date().getHours();
                       if (currentHour < 9 || currentHour >= 20) {
@@ -346,7 +340,13 @@ export default function UnitDetail() {
                       if(window.confirm('중개수수료 지급을 완료 처리하시겠습니까? 중개사에게 알림톡이 발송됩니다.')) {
                         await updateContract(buildingId, unitId, {
                           ...contract,
-                          broker: { ...contract.broker, isPaid: true, paidDate: new Date().toISOString(), lastNotifiedAt: new Date().toISOString() }
+                          broker: { 
+                            ...contract.broker, 
+                            status: 'paid',
+                            isPaid: true, 
+                            paidDate: new Date().toISOString(), 
+                            lastNotifiedAt: new Date().toISOString() 
+                          }
                         });
                         alert('수수료 지급이 완료되었습니다. 중개사에게 알림톡이 전송됩니다.');
                       }
@@ -370,7 +370,7 @@ export default function UnitDetail() {
               <div style={{ fontSize: '16px', color: 'var(--color-text-secondary)', marginTop: '8px', marginBottom: '16px' }}>임차인이 링크를 열어 내용을 확인하고 서명하면 상태가 변경됩니다.</div>
               
               <Button variant="primary" onClick={handleResendLink}>
-                카카오톡/문자 다시 보내기
+                입주키트(전자서명) 링크 재발송
               </Button>
               <Button variant="secondary" onClick={() => navigate('/landlord/home')}>
                 건물 전체 현황으로 돌아가기
@@ -388,14 +388,20 @@ export default function UnitDetail() {
               <Button variant="primary" onClick={handleConfirmDeposit}>
                 보증금 입금 확인 및 계약 확정
               </Button>
+              <Button variant="secondary" onClick={handleResendLink} style={{ marginTop: '8px' }}>
+                계약서 링크 다시 보내기
+              </Button>
             </div>
           ) : isConfirmed ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '24px' }}>
-              <Button variant="primary" onClick={() => navigate(`/landlord/buildings/${buildingId}/units/${unitId}/rent`)}>
+              <Button variant="primary" onClick={handleResendLink}>
+                입주키트 알림톡 (재)발송
+              </Button>
+              <Button variant="secondary" onClick={() => navigate(`/landlord/buildings/${buildingId}/units/${unitId}/rent`)}>
                 보증금 및 월세 납부 현황 보기
               </Button>
               <Button variant="secondary" onClick={() => navigate(`/landlord/buildings/${buildingId}/units/${unitId}/signed-kit`)}>
-                서명 완료된 입주안내문 확인
+                서명 완료된 계약/입주안내문 확인
               </Button>
               <Button variant="secondary" onClick={() => navigate(`/landlord/buildings/${buildingId}/units/${unitId}/rent/adjust`)}>
                 청구 금액 추가/변경
@@ -525,7 +531,35 @@ export default function UnitDetail() {
                   const bId = b.id || b.phone || String(idx);
                   return selectedBrokers.includes(bId);
                 }).map(b => b.name).join(', ');
-                alert(`[모의 발송 완료]\n\n선택한 중개사(${selectedNames})에게 카카오톡으로 공실 정보가 발송되었습니다!\n\n(발송 내용)\n${text}${brochureLink}`);
+
+                // Firestore listings 컬렉션에 매물 문서 생성 (중개사별로 각각 생성)
+                const selectedBrokerData = user.brokers.filter((b, idx) => {
+                  const bId = b.id || b.phone || String(idx);
+                  return selectedBrokers.includes(bId);
+                });
+
+                for (const broker of selectedBrokerData) {
+                  if (broker.officeId) {
+                    await addDoc(collection(db, 'listings'), {
+                      officeId: broker.officeId,
+                      landlordId: user.uid,
+                      landlordName: user.name || '',
+                      landlordPhone: user.phone || '',
+                      buildingId,
+                      buildingName: building?.name || '',
+                      unitId,
+                      unitNumber: unit?.unitNumber || '',
+                      deposit: unit?.contract?.deposit || 0,
+                      monthlyRent: unit?.contract?.monthlyRent || 0,
+                      type: '일반',
+                      status: '접수됨',
+                      memo: '',
+                      requestedAt: new Date().toISOString()
+                    });
+                  }
+                }
+
+                alert(`선택한 중개사(${selectedNames})에게 매물 접수가 완료되었습니다!\n중개사 백오피스에서 확인할 수 있습니다.\n\n(발송 내용)\n${text}${brochureLink}`);
                 
                 await updateUnit(buildingId, unitId, { lastBrokerNotifiedAt: new Date().toISOString() });
                 setIsBrokerModalOpen(false);
@@ -534,6 +568,17 @@ export default function UnitDetail() {
           </div>
         </div>
       )}
+
+      <NotificationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={onConfirmSend}
+        title={isConfirmed ? "입주키트 알림톡 발송" : "전자서명 요청(입주키트) 재발송"}
+        tenantName={unit?.contract?.tenantName || '임차인'}
+        message={isConfirmed 
+          ? `[100집 입주키트 도착]\n\n${building?.name || ''} ${unit?.unitNumber || ''} 입주를 환영합니다!\n계약 정보 및 건물 이용 안내가 담긴 입주키트가 도착했습니다.\n\n아래 링크를 눌러 확인해 주세요.\n${inviteLink}`
+          : `[100집 전자서명 요청]\n\n${building?.name || ''} ${unit?.unitNumber || ''} 입주를 환영합니다!\n\n전자서명을 완료하시면 계약이 성립되며, 보증금 입금이 확인되면 공동현관 비밀번호 등 입주키트가 자동으로 공개됩니다.\n\n아래 링크를 눌러 계약 정보를 확인하고 서명을 진행해 주세요.\n${inviteLink}`}
+      />
     </div>
   );
 }

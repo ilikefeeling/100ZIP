@@ -23,7 +23,9 @@ const TENANT_TABS = [
 ];
 const BROKER_TABS = [
   { path: '/broker/home', icon: '🏠', label: '홈' },
-  // 추후 중개사 전용 탭 추가 가능
+  { path: '/broker/listings', icon: '📋', label: '매물관리' },
+  { path: '/broker/clients', icon: '🤝', label: '임대인장부' },
+  { path: '/broker/expiring', icon: '⏳', label: '만기임박' },
 ];
 
 export default function BottomTabBar({ role = 'landlord' }) {

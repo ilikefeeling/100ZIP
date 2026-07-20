@@ -40,6 +40,12 @@ const TenantHistory = lazy(() => import('./pages/landlord/TenantHistory'));
 const LandlordBrokerManage = lazy(() => import('./pages/landlord/LandlordBrokerManage'));
 const BrokerHome = lazy(() => import('./pages/broker/BrokerHome'));
 const LandlordInvite = lazy(() => import('./pages/broker/LandlordInvite'));
+const BrokerRegister = lazy(() => import('./pages/broker/BrokerRegister'));
+const ClientList = lazy(() => import('./pages/broker/ClientList'));
+const ExpiringUnits = lazy(() => import('./pages/broker/ExpiringUnits'));
+const ListingManage = lazy(() => import('./pages/broker/ListingManage'));
+const StaffManage = lazy(() => import('./pages/broker/StaffManage'));
+const BrokerInviteLanding = lazy(() => import('./pages/broker/BrokerInviteLanding'));
 
 // Tenant pages
 const TenantHome = lazy(() => import('./pages/tenant/TenantHome'));
@@ -105,6 +111,7 @@ export default function App() {
             <Route path="/manual" element={<UserManual />} />
             <Route path="/invite/:buildingId/:unitId" element={<GuestInvite />} />
             <Route path="/share/broker/:buildingId" element={<BrokerShareView />} />
+            <Route path="/invite/broker/:officeId" element={<BrokerInviteLanding />} />
 
             {/* ── 임대인 ── */}
             <Route path="/landlord/home" element={<LandlordHome />} />
@@ -132,8 +139,13 @@ export default function App() {
             <Route path="/landlord/notifications" element={<Notifications />} />
 
             {/* ── 중개사 ── */}
+            <Route path="/broker/register" element={<BrokerRegister />} />
             <Route path="/broker/home" element={<BrokerHome />} />
             <Route path="/broker/landlord-invite" element={<LandlordInvite />} />
+            <Route path="/broker/clients" element={<ClientList />} />
+            <Route path="/broker/expiring" element={<ExpiringUnits />} />
+            <Route path="/broker/listings" element={<ListingManage />} />
+            <Route path="/broker/staff" element={<StaffManage />} />
 
             {/* ── 임차인 ── */}
             <Route path="/tenant/home" element={<TenantHome />} />

@@ -280,24 +280,6 @@ export default function LandlordHome() {
                         <p className="ll-home__card-address">{building.address}</p>
                         <p className="ll-home__card-type">{building.buildingType} · {stats.total}호실</p>
                       </div>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); navigate(`/landlord/buildings/${building.id}/settings`); }}
-                        style={{
-                          background: 'var(--color-surface)',
-                          border: '1px solid var(--color-border)',
-                          borderRadius: '16px',
-                          fontSize: '16px',
-                          fontWeight: '600',
-                          color: 'var(--color-text-secondary)',
-                          padding: '6px 14px',
-                          cursor: 'pointer',
-                          whiteSpace: 'nowrap',
-                          flexShrink: 0,
-                          marginLeft: 'auto',
-                        }}
-                      >
-                        건물 관리
-                      </button>
                     </div>
                     <div className="ll-home__card-badges">
                       {stats.rented > 0 && (
@@ -366,6 +348,40 @@ export default function LandlordHome() {
           + 건물 추가
         </button>
       </div>
+
+      {/* 나의 주거래 중개사 스티키 위젯 (Mock) */}
+      {user?.brokers?.length > 0 && (
+        <div 
+          onClick={() => navigate('/landlord/brokers')}
+          style={{
+            position: 'fixed',
+            bottom: '70px', /* BottomTabBar 높이 위 */
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '90%',
+            maxWidth: '400px',
+            background: 'var(--color-surface)',
+            border: '2px solid var(--color-primary-600)',
+            borderRadius: '16px',
+            padding: '12px 16px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            zIndex: 100,
+            cursor: 'pointer'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ fontSize: '24px' }}>🤝</div>
+            <div>
+              <div style={{ fontSize: '12px', color: 'var(--color-primary-600)', fontWeight: 'bold' }}>나의 주거래 중개사</div>
+              <div style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--color-text-primary)' }}>{user.brokers[0].name} 📞</div>
+            </div>
+          </div>
+          <div style={{ color: 'var(--color-text-tertiary)' }}>〉</div>
+        </div>
+      )}
 
       <BottomTabBar role="landlord" />
     </div>

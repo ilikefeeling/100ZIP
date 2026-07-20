@@ -3,14 +3,16 @@
 }
 
 .ll-home__greeting {
-  padding: var(--space-6) 0 var(--space-4);
+  padding: 24px 0 20px;
 }
 
 .ll-home__hello {
-  font: var(--font-heading-1);
+  font-size: 24px;
+  font-weight: 800;
   color: var(--color-text-primary);
   word-break: keep-all;
   overflow-wrap: break-word;
+  letter-spacing: -0.5px;
 }
 
 .ll-home__hello strong {
@@ -18,33 +20,53 @@
 }
 
 .ll-home__sub {
-  font: var(--font-body);
+  font-size: 15px;
   color: var(--color-text-secondary);
-  margin-top: var(--space-1);
+  margin-top: 6px;
+  font-weight: 500;
 }
 
 /* 건물 카드 리스트 */
 .ll-home__list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: 16px;
 }
 
 .ll-home__card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+  transition: all 0.25s cubic-bezier(0.1, 0.7, 0.1, 1);
+}
+
+.ll-home__card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  border-color: rgba(0,0,0,0.1);
 }
 
 .ll-home__card-header {
   display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
+  align-items: center;
+  gap: 16px;
 }
 
 .ll-home__card-icon {
-  font-size: 36px;
+  font-size: 40px;
   flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  background: var(--color-bg-secondary);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ll-home__card-info {
@@ -52,19 +74,25 @@
 }
 
 .ll-home__card-address {
-  font: var(--font-body-large);
+  font-size: 18px;
+  font-weight: 700;
   color: var(--color-text-primary);
+  margin-bottom: 4px;
+  letter-spacing: -0.3px;
 }
 
 .ll-home__card-type {
-  font: var(--font-caption);
+  font-size: 14px;
   color: var(--color-text-secondary);
-  margin-top: 2px;
+  font-weight: 500;
 }
 
 .ll-home__card-badges {
   display: flex;
-  gap: var(--space-2);
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--color-border);
 }
 
 /* 빈 상태 */
@@ -73,38 +101,46 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-8) 0;
+  padding: 48px 0;
   text-align: center;
+  background: var(--color-bg-secondary);
+  border-radius: 20px;
+  margin-top: 16px;
 }
 
 .ll-home__empty-icon {
-  font-size: 72px;
-  margin-bottom: var(--space-4);
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.8;
 }
 
 .ll-home__empty-text {
-  font: var(--font-body-large);
+  font-size: 15px;
   color: var(--color-text-secondary);
   line-height: 1.6;
+  font-weight: 500;
 }
 
 /* 플로팅 추가 버튼 */
 .ll-home__fab {
   position: fixed;
   bottom: 88px;
-  right: var(--space-4);
+  right: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: var(--size-button-height);
-  padding: 0 var(--space-6);
+  height: 56px;
+  padding: 0 24px;
   background: var(--color-accent-600);
   color: var(--color-text-on-accent);
-  font: var(--font-body-large);
-  border-radius: var(--radius-badge);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: transform 0.15s ease;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 28px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 50;
+  border: none;
+  cursor: pointer;
 }
 
 .ll-home__fab:active {

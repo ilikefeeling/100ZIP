@@ -22,7 +22,8 @@ const usePropertyStore = create((set, get) => ({
       q = query(collection(db, 'buildings'), where('userId', '==', uid));
     } else if (role === 'tenant') {
       if (!phone || phone === '010-0000-0000') return;
-      q = query(collection(db, 'buildings'), where('tenantPhones', 'array-contains', phone));
+      const formattedPhone = phone.replace(/-/g, '');
+      q = query(collection(db, 'buildings'), where('tenantPhones', 'array-contains', formattedPhone));
     } else {
       return;
     }
@@ -130,6 +131,23 @@ const usePropertyStore = create((set, get) => ({
       }
     });
     return Array.from(offices);
+  },
+
+  getAllBrokers: () => {
+    const buildings = get().buildings;
+    const brokers = [];
+    const seen = new Set();
+    buildings.forEach(b => {
+      if (b.brokers) {
+        b.brokers.forEach(brk => {
+          if (brk.officeName && !seen.has(brk.officeName)) {
+            seen.add(brk.officeName);
+            brokers.push(brk);
+          }
+        });
+      }
+    });
+    return brokers;
   },
 
   removeBroker: async (buildingId, brokerId) => {

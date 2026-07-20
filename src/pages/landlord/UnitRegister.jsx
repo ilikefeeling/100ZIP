@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import usePropertyStore from '../../stores/propertyStore';
 import TopBar from '../../components/TopBar';
@@ -42,12 +42,64 @@ export default function UnitRegister() {
   const [customNote, setCustomNote] = useState('');
   const [showCustomOption, setShowCustomOption] = useState(false);
   const [customOption, setCustomOption] = useState('');
+  
+  const [customOptionsList, setCustomOptionsList] = useState([]);
+  const [customNotesList, setCustomNotesList] = useState([]);
 
   // 사진 업로드 (최대 3장)
   const [photos, setPhotos] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
 
   const totalSteps = 6;
+
+  // 임시 저장 불러오기
+  useEffect(() => {
+    const draft = sessionStorage.getItem(`unitDraft_${buildingId}`);
+    if (draft) {
+      try {
+        const parsed = JSON.parse(draft);
+        if (parsed.step) setStep(parsed.step);
+        if (parsed.unitNumber) setUnitNumber(parsed.unitNumber);
+        if (parsed.area) setArea(parsed.area);
+        if (parsed.structure) setStructure(parsed.structure);
+        if (parsed.options) setOptions(parsed.options);
+        if (parsed.selectedSpecials) setSelectedSpecials(parsed.selectedSpecials);
+        if (parsed.customOptionsList) setCustomOptionsList(parsed.customOptionsList);
+        if (parsed.customNotesList) setCustomNotesList(parsed.customNotesList);
+      } catch (e) {}
+    }
+  }, [buildingId]);
+
+  // 자동 임시 저장
+  useEffect(() => {
+    if (step > 1 || unitNumber || area) {
+      sessionStorage.setItem(`unitDraft_${buildingId}`, JSON.stringify({
+        step, unitNumber, area, structure, options, selectedSpecials, customOptionsList, customNotesList
+      }));
+    }
+  }, [step, unitNumber, area, structure, options, selectedSpecials, customOptionsList, customNotesList, buildingId]);
+
+  const handleAddCustomOption = () => {
+    if (customOption.trim() && !customOptionsList.includes(customOption.trim())) {
+      setCustomOptionsList([...customOptionsList, customOption.trim()]);
+    }
+    setCustomOption('');
+  };
+
+  const handleRemoveCustomOption = (opt) => {
+    setCustomOptionsList(customOptionsList.filter(o => o !== opt));
+  };
+
+  const handleAddCustomNote = () => {
+    if (customNote.trim() && !customNotesList.includes(customNote.trim())) {
+      setCustomNotesList([...customNotesList, customNote.trim()]);
+    }
+    setCustomNote('');
+  };
+
+  const handleRemoveCustomNote = (note) => {
+    setCustomNotesList(customNotesList.filter(n => n !== note));
+  };
 
   const toggleOption = (id) => {
     setOptions((prev) =>
@@ -86,7 +138,7 @@ export default function UnitRegister() {
   const handleComplete = async () => {
     setIsUploading(true);
     try {
-      let finalNotes = [...selectedSpecials];
+      let finalNotes = [...selectedSpecials, ...customNotesList];
       if (showCustomInput && customNote.trim()) {
         finalNotes.push(customNote.trim());
       }
@@ -98,10 +150,13 @@ export default function UnitRegister() {
         structureType: structure,
         options: [
           ...options.map((id) => OPTION_ITEMS.find((o) => o.id === id)?.label).filter(Boolean),
+          ...customOptionsList,
           ...(showCustomOption && customOption.trim() ? [customOption.trim()] : [])
         ],
         specialNotes: finalNotes.join(', '),
       });
+      
+      sessionStorage.removeItem(`unitDraft_${buildingId}`);
 
       // 사진 업로드 병렬 처리
       if (photos.length > 0) {
@@ -122,9 +177,17 @@ export default function UnitRegister() {
     }
   };
 
+  const handleBack = () => {
+    if (step > 1) {
+      setStep(step - 1);
+    } else {
+      navigate(-1);
+    }
+  };
+
   return (
     <div className="page">
-      <TopBar title="호실 등록" />
+      <TopBar title="호실 등록" onBack={handleBack} />
       <ProgressBar current={step} total={totalSteps} />
 
       <div className="page-content unit-reg">
@@ -195,30 +258,32 @@ export default function UnitRegister() {
                   </div>
                 </Card>
               ))}
-              <button
-                className={`unit-reg__custom-btn ${showCustomOption ? 'unit-reg__custom-btn--active' : ''}`}
-                onClick={() => setShowCustomOption(!showCustomOption)}
-                style={{
-                  background: showCustomOption ? 'var(--color-primary-100)' : 'transparent',
-                  borderColor: showCustomOption ? 'var(--color-primary-600)' : 'var(--color-border)',
-                  color: showCustomOption ? 'var(--color-primary-600)' : 'var(--color-text-secondary)',
-                  gridColumn: '1 / -1',
-                  marginTop: '12px'
-                }}
-              >
-                + 직접 입력
-              </button>
+              {customOptionsList.map((opt) => (
+                <Card key={opt} clickable selected onClick={() => handleRemoveCustomOption(opt)}>
+                  <div className="unit-reg__option-card">
+                    <span className="unit-reg__option-icon">✨</span>
+                    <span className="unit-reg__option-label">{opt}</span>
+                  </div>
+                </Card>
+              ))}
             </div>
-            {showCustomOption && (
-              <input
-                type="text"
-                className="unit-reg__input"
-                style={{ marginTop: '12px' }}
-                placeholder="예: 전자레인지, 침대 등"
-                value={customOption}
-                onChange={(e) => setCustomOption(e.target.value)}
-              />
-            )}
+            <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                <input
+                  type="text"
+                  className="unit-reg__input"
+                  style={{ flex: 1 }}
+                  placeholder="예: 전자레인지, 침대 등"
+                  value={customOption}
+                  onChange={(e) => setCustomOption(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddCustomOption();
+                    }
+                  }}
+                />
+                <Button variant="primary" fullWidth={false} onClick={handleAddCustomOption} style={{ padding: '0 24px', whiteSpace: 'nowrap' }}>추가</Button>
+              </div>
           </div>
         )}
 
@@ -237,27 +302,29 @@ export default function UnitRegister() {
                   <div className="unit-reg__card-label">{preset}</div>
                 </Card>
               ))}
-              <button
-                className={`unit-reg__custom-btn ${showCustomInput ? 'unit-reg__custom-btn--active' : ''}`}
-                onClick={() => setShowCustomInput(!showCustomInput)}
-                style={{
-                  background: showCustomInput ? 'var(--color-primary-100)' : 'transparent',
-                  borderColor: showCustomInput ? 'var(--color-primary-600)' : 'var(--color-border)',
-                  color: showCustomInput ? 'var(--color-primary-600)' : 'var(--color-text-secondary)',
-                }}
-              >
-                직접 입력
-              </button>
+              {customNotesList.map((note) => (
+                <Card key={note} clickable selected onClick={() => handleRemoveCustomNote(note)}>
+                  <div className="unit-reg__card-label">{note}</div>
+                </Card>
+              ))}
             </div>
-            {showCustomInput && (
-              <textarea
-                className="unit-reg__textarea"
-                placeholder="특이사항을 입력해주세요"
-                value={customNote}
-                onChange={(e) => setCustomNote(e.target.value)}
-                rows={3}
-              />
-            )}
+            <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                <input
+                  type="text"
+                  className="unit-reg__input"
+                  style={{ flex: 1 }}
+                  placeholder="특이사항을 입력해주세요"
+                  value={customNote}
+                  onChange={(e) => setCustomNote(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddCustomNote();
+                    }
+                  }}
+                />
+                <Button variant="primary" fullWidth={false} onClick={handleAddCustomNote} style={{ padding: '0 24px', whiteSpace: 'nowrap' }}>추가</Button>
+              </div>
           </div>
         )}
 

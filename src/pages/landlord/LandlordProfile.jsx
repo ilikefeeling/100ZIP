@@ -25,6 +25,9 @@ export default function LandlordProfile() {
   const [isAddingAccount, setIsAddingAccount] = useState(false);
   const [newAccount, setNewAccount] = useState({ bank: '', accountNumber: '', holder: '' });
 
+  // 사업자 정보 폼 상태
+  const [isEditingBusinessInfo, setIsEditingBusinessInfo] = useState(false);
+
   useEffect(() => {
     if (user) {
       setFormData({
@@ -204,7 +207,8 @@ export default function LandlordProfile() {
                   value={newAccount.accountNumber} 
                   onChange={e => setNewAccount({...newAccount, accountNumber: e.target.value})}
                   placeholder="'-' 없이 입력"
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                 />
               </div>
               <div style={{ ...groupStyle, marginBottom: '16px' }}>
@@ -239,43 +243,86 @@ export default function LandlordProfile() {
 
         {/* 3. 사업자 정보 */}
         <div style={{ marginBottom: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-            <input 
-              type="checkbox" 
-              id="businessCheck"
-              checked={formData.businessInfo.isRegistered}
-              onChange={e => setFormData({
-                ...formData, 
-                businessInfo: { ...formData.businessInfo, isRegistered: e.target.checked }
-              })}
-              style={{ width: '24px', height: '24px', cursor: 'pointer' }}
-            />
-            <label htmlFor="businessCheck" style={{ fontSize: '18px', fontWeight: 'bold', cursor: 'pointer' }}>
-              사업자 정보 등록하기
-            </label>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>사업자 정보</h2>
           </div>
 
-          {formData.businessInfo.isRegistered && (
-            <div style={{ padding: '20px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '16px' }}>
-              <div style={groupStyle}>
+          {formData.businessInfo.isRegistered && !isEditingBusinessInfo ? (
+            <Card style={{ marginBottom: '12px', padding: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--color-text-primary)', marginBottom: '8px' }}>
+                    {formData.businessInfo.businessName}
+                  </div>
+                  <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)' }}>
+                    사업자 등록번호: {formData.businessInfo.registrationNumber}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <button 
+                    onClick={() => setIsEditingBusinessInfo(true)}
+                    style={{ background: 'transparent', border: '1px solid var(--color-border)', borderRadius: '4px', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}
+                  >
+                    수정
+                  </button>
+                  <button 
+                    onClick={() => setFormData({...formData, businessInfo: { isRegistered: false, registrationNumber: '', businessName: '' }})}
+                    style={{ background: 'transparent', border: 'none', color: 'var(--color-danger-600)', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    삭제
+                  </button>
+                </div>
+              </div>
+            </Card>
+          ) : isEditingBusinessInfo ? (
+            <Card style={{ padding: '16px', background: 'var(--color-bg-base)' }}>
+              <div style={{ ...groupStyle, marginBottom: '12px' }}>
                 <label style={labelStyle}>사업자 등록번호</label>
                 <input 
-                  style={inputStyle} 
+                  style={{ ...inputStyle, background: 'white' }} 
                   value={formData.businessInfo.registrationNumber} 
                   onChange={e => setFormData({...formData, businessInfo: { ...formData.businessInfo, registrationNumber: e.target.value }})}
                   placeholder="'-' 없이 입력"
                 />
               </div>
-              <div style={{ marginBottom: 0 }}>
+              <div style={{ ...groupStyle, marginBottom: '16px' }}>
                 <label style={labelStyle}>상호명(법인명)</label>
                 <input 
-                  style={inputStyle} 
+                  style={{ ...inputStyle, background: 'white' }} 
                   value={formData.businessInfo.businessName} 
                   onChange={e => setFormData({...formData, businessInfo: { ...formData.businessInfo, businessName: e.target.value }})}
                   placeholder="예: 100집 주식회사"
                 />
               </div>
-            </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button 
+                  onClick={() => setIsEditingBusinessInfo(false)}
+                  style={{ flex: 1, padding: '12px', background: 'white', border: '1px solid var(--color-border)', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  취소
+                </button>
+                <button 
+                  onClick={() => {
+                    if (!formData.businessInfo.registrationNumber || !formData.businessInfo.businessName) {
+                      alert('사업자 정보를 모두 입력해주세요.');
+                      return;
+                    }
+                    setFormData({...formData, businessInfo: { ...formData.businessInfo, isRegistered: true }});
+                    setIsEditingBusinessInfo(false);
+                  }}
+                  style={{ flex: 1, padding: '12px', background: 'var(--color-primary-600)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  확인
+                </button>
+              </div>
+            </Card>
+          ) : (
+            <button 
+              onClick={() => setIsEditingBusinessInfo(true)}
+              style={{ width: '100%', padding: '12px', background: 'white', border: '1px dashed var(--color-border)', borderRadius: '12px', color: 'var(--color-text-secondary)', fontWeight: 'bold', cursor: 'pointer' }}
+            >
+              + 사업자 정보 등록하기
+            </button>
           )}
         </div>
 

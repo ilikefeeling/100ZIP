@@ -5,6 +5,7 @@ import TopBar from '../../components/TopBar';
 import Card from '../../components/Card';
 import StatusBadge from '../../components/StatusBadge';
 import Button from '../../components/Button';
+import NotificationModal from '../../components/NotificationModal';
 import './RentDetail.css';
 
 /**
@@ -18,6 +19,7 @@ export default function RentDetail() {
   const building = usePropertyStore((s) => s.getBuilding(buildingId));
 
   const updateContract = usePropertyStore((s) => s.updateContract);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   if (!unit || !unit.contract) {
     return (
@@ -103,8 +105,11 @@ export default function RentDetail() {
       return;
     }
     
-    alert(`[카카오톡 발송 미리보기]\n\n${contract.tenantName}님, ${targetRecord.month} 임차료 ${rentTotal.toLocaleString()}원이 미납되었습니다. 빠른 납부 부탁드립니다.\n\n(※ 실제로는 부드러운 어조의 카카오톡 알림톡이 전송됩니다.)`);
-    
+    setIsModalOpen(true);
+  };
+
+  const onConfirmSend = async () => {
+    setIsModalOpen(false);
     // 발송 이력 업데이트 (실제 DB 반영)
     const updated = rentRecords.map(r => 
       r.id === targetRecord.id 
@@ -201,6 +206,17 @@ export default function RentDetail() {
           </Button>
         </div>
       </div>
+
+      {targetRecord && (
+        <NotificationModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onConfirm={onConfirmSend}
+          title="임대료 납부 안내 (알림톡)"
+          tenantName={contract.tenantName}
+          message={`[100집 납부 안내]\n\n${contract.tenantName}님, 안녕하세요.\n${targetRecord.month} 임차료 ${rentTotal.toLocaleString()}원이 미납되었습니다.\n\n바쁘시겠지만, 확인 후 빠른 납부 부탁드립니다.\n감사합니다.`}
+        />
+      )}
     </div>
   );
 }

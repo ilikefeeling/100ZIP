@@ -93,6 +93,9 @@ const useAuthStore = create((set, get) => ({
     }
 
     let currentPhotoURL = firebaseUser.photoURL || '';
+    if (currentPhotoURL.startsWith('http://')) {
+      currentPhotoURL = currentPhotoURL.replace('http://', 'https://');
+    }
     if (kakaoProfile?.profile_image_url) {
       currentPhotoURL = kakaoProfile.profile_image_url;
     } else if (kakaoProfile?.profile_image) {
@@ -143,10 +146,18 @@ const useAuthStore = create((set, get) => ({
       provider.addScope('profile_nickname');
       provider.addScope('profile_image');
 
-      // 모바일 환경에서도 리다이렉트 대신 팝업 방식(signInWithPopup)으로 통일합니다.
-      // 리다이렉트 방식이 특정 브라우저/프록시 환경에서 세션 유실이나 무한 로딩을 유발하기 때문입니다.
-      const result = await signInWithPopup(auth, provider);
-      return await get().handleAuthResult(result, role);
+      // 사파리/크롬 등 일반 모바일 브라우저의 리다이렉트 루프 버그를 피하기 위해, 
+      // 팝업이 강제로 막히는 '카카오톡 인앱 브라우저'에서만 Redirect를 사용합니다.
+      const isKakaoTalk = /KAKAOTALK/i.test(navigator.userAgent);
+
+      if (isKakaoTalk) {
+        sessionStorage.setItem('pendingRole', role);
+        await signInWithRedirect(auth, provider);
+        return { isRedirect: true };
+      } else {
+        const result = await signInWithPopup(auth, provider);
+        return await get().handleAuthResult(result, role);
+      }
     } catch (error) {
       console.error("Kakao Login Error:", error);
       throw error;

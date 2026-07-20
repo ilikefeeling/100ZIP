@@ -1,77 +1,98 @@
 .role-select {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
-  padding: 0 0 var(--space-8) 0;
+  gap: 16px;
+  padding: 0 0 40px 0;
   flex: 1;
 }
 
 .role-select__card {
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* 좌측 정렬 */
+  align-items: flex-start;
   justify-content: flex-start;
   text-align: left;
-  gap: var(--space-2);
-  padding: var(--space-4);
-  background-color: var(--card-bg, var(--color-surface)) !important;
-  border-color: var(--card-border, var(--color-border));
+  padding: 24px 20px;
+  background-color: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.03) !important;
+  transition: all 0.25s cubic-bezier(0.1, 0.7, 0.1, 1) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.role-select__card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%);
+  pointer-events: none;
 }
 
 .role-select__card--landlord {
-  --theme-bg: var(--color-primary-100);
-  --theme-color: var(--color-primary-600);
-  --card-bg: #E1F5FE; /* Sky Blue */
-  --card-border: #B3E5FC;
+  --theme-bg: #E3F2FD;
+  --theme-color: #1976D2;
+  --card-bg: #F0F7FF;
+  --card-border: #E0F0FE;
 }
 
 .role-select__card--tenant {
-  --theme-bg: var(--color-accent-100);
-  --theme-color: var(--color-accent-600);
-  --card-bg: #FFF3E0; /* Soft Orange */
-  --card-border: #FFE0B2;
+  --theme-bg: #FFF3E0;
+  --theme-color: #F57C00;
+  --card-bg: #FFF8F0;
+  --card-border: #FFEDD5;
 }
 
 .role-select__card--manual {
-  --theme-bg: var(--color-success-100);
-  --theme-color: var(--color-success-600);
-  --card-bg: #E8F5E9; /* Soft Green */
-  --card-border: #C8E6C9;
+  --theme-bg: #E8F5E9;
+  --theme-color: #388E3C;
+  --card-bg: #F0FDF4;
+  --card-border: #DCFCE7;
 }
 
 .role-select__card--broker {
-  --theme-bg: var(--color-info-100);
-  --theme-color: var(--color-info-600);
-  --card-bg: #F3E5F5; /* Soft Purple (Contrasts with Sky Blue) */
-  --card-border: #E1BEE7;
+  --theme-bg: #F3E5F5;
+  --theme-color: #8E24AA;
+  --card-bg: #FDF4FF;
+  --card-border: #FAE8FF;
 }
 
 .role-select__card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.06) !important;
   border-color: var(--theme-color) !important;
 }
 
+.role-select__card:active {
+  transform: translateY(0);
+}
+
 .role-select__icon-badge {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   background: var(--theme-bg);
   color: var(--theme-color);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: var(--space-2);
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
 .role-select__label {
-  font: var(--font-heading-2);
+  font-size: 18px;
+  font-weight: 700;
   color: var(--color-text-primary);
-  margin-bottom: 2px;
+  margin-bottom: 6px;
+  letter-spacing: -0.3px;
 }
 
 .role-select__desc {
-  font: var(--font-body);
+  font-size: 14px;
   color: var(--color-text-secondary);
-  line-height: 1.4;
+  line-height: 1.45;
   word-break: keep-all;
+  font-weight: 500;
 }
-

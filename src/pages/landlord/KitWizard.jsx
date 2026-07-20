@@ -5,6 +5,7 @@ import TopBar from '../../components/TopBar';
 import Button from '../../components/Button';
 import ProgressBar from '../../components/ProgressBar';
 import Card from '../../components/Card';
+import NotificationModal from '../../components/NotificationModal';
 import { formatPhoneNumber } from '../../utils/formatters';
 import './KitWizard.css';
 
@@ -32,6 +33,8 @@ export default function KitWizard() {
   const [parkingInfo, setParkingInfo] = useState(building?.parkingInfo || '');
   
   const [commonNotice, setCommonNotice] = useState(building?.commonNotice || '');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [inviteLink, setInviteLink] = useState('');
 
   useEffect(() => {
     if (building) {
@@ -70,37 +73,13 @@ export default function KitWizard() {
     ]);
     
     // 2. 모의 공유 링크 생성
-    const inviteLink = `${window.location.origin}/invite/${buildingId}/${unitId}`;
-    
-    // 3. 네이티브 공유 또는 SMS 전송 유도
-    const tenantPhone = unit?.contract?.tenantPhone;
-    const message = `[건물주] ${building?.name || ''} ${unit?.unitNumber || ''} 입주키트(비밀번호, 이용안내)가 도착했습니다.\n링크를 눌러 확인해 주세요.\n${inviteLink}`;
+    const link = `${window.location.origin}/invite/${buildingId}/${unitId}`;
+    setInviteLink(link);
+    setIsModalOpen(true);
+  };
 
-    try {
-      await navigator.clipboard.writeText(message);
-    } catch (err) {}
-
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-    if (isMobile) {
-      if (navigator.share) {
-        try {
-          await navigator.share({
-            title: '입주키트 안내',
-            text: message
-          });
-        } catch (error) {
-          if (error.name !== 'AbortError') {
-            window.location.href = `sms:${tenantPhone ? tenantPhone.replace(/-/g, '') : ''}?body=${encodeURIComponent(message)}`;
-          }
-        }
-      } else {
-        window.location.href = `sms:${tenantPhone ? tenantPhone.replace(/-/g, '') : ''}?body=${encodeURIComponent(message)}`;
-      }
-    } else {
-      alert("초대 메시지가 복사되었습니다!\n\nPC를 사용 중이시네요. PC 카카오톡이나 메시지 앱 대화창에 '붙여넣기(Ctrl+V)' 해서 보내주시면 됩니다.");
-    }
-    
+  const onConfirmSend = () => {
+    setIsModalOpen(false);
     navigate(`/landlord/buildings/${buildingId}/units/${unitId}`, { replace: true });
   };
 
@@ -110,6 +89,11 @@ export default function KitWizard() {
       <ProgressBar current={step} total={totalSteps} />
 
       <div className="page-content kit-wiz">
+        <div style={{ backgroundColor: 'var(--color-surface-sunken)', padding: '16px', borderRadius: '8px', marginBottom: '24px', fontSize: '14px', color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>
+          💡 <strong>안심하세요!</strong><br />
+          여기서 작성하는 공동현관 비밀번호 등의 입주키트 정보는 세입자가 <strong>전자서명을 완료하고, 보증금 입금이 확인되기 전까지는 자물쇠로 잠겨서 보이지 않습니다.</strong> 지금은 전자서명 요청을 보내기 위해 미리 작성해 두는 단계입니다.
+        </div>
+
         {step === 1 && (
           <div className="kit-wiz__step">
             <h2 className="kit-wiz__question">비밀번호를 알려주세요</h2>
@@ -124,79 +108,82 @@ export default function KitWizard() {
                 />
               </div>
               <div className="kit-wiz__label-input">
-                <label>호실 비밀번호</label>
+                <label>호실 비밀번호 (선택)</label>
                 <input
                   className="kit-wiz__input"
-                  placeholder="예: 5678*"
+                  placeholder="예: 1234*"
                   value={unitDoorCode}
                   onChange={(e) => setUnitDoorCode(e.target.value)}
-                  autoFocus
-                />
-              </div>
-              <div className="kit-wiz__label-input">
-                <label>와이파이 비밀번호 (선택)</label>
-                <input
-                  className="kit-wiz__input"
-                  placeholder="예: 12345678"
-                  value={wifiCode}
-                  onChange={(e) => setWifiCode(e.target.value)}
-                />
-              </div>
-              <div className="kit-wiz__label-input">
-                <label>기타 공용 비밀번호 (분리수거장 등)</label>
-                <input
-                  className="kit-wiz__input"
-                  placeholder="예: 분리수거장 1111*"
-                  value={otherCommonCode}
-                  onChange={(e) => setOtherCommonCode(e.target.value)}
                 />
               </div>
             </div>
+            <p className="kit-wiz__hint">세입자가 언제든 앱에서 확인할 수 있습니다.</p>
           </div>
         )}
 
         {step === 2 && (
           <div className="kit-wiz__step">
-            <h2 className="kit-wiz__question">기본 시설물 사용법</h2>
-            <p className="kit-wiz__desc">보일러, 에어컨 등 작동법을 적어주시면 세입자 문의가 줄어듭니다.</p>
+            <h2 className="kit-wiz__question">도어락 마스터 비밀번호가 있나요?</h2>
             <div className="kit-wiz__inputs">
-              <textarea
-                className="kit-wiz__textarea"
-                rows={4}
-                placeholder="예: 보일러는 외출 모드로 유지해주세요."
-              />
+              <div className="kit-wiz__label-input">
+                <label>마스터 비밀번호 (선택)</label>
+                <input
+                  className="kit-wiz__input"
+                  placeholder="임대인 전용 (세입자에게는 보이지 않습니다)"
+                  value={doorCode}
+                  onChange={(e) => setDoorCode(e.target.value)}
+                />
+              </div>
             </div>
+            <p className="kit-wiz__hint">퇴거 시 비밀번호 초기화를 위해 임대인님만 볼 수 있게 저장됩니다.</p>
           </div>
         )}
 
         {step === 3 && (
           <div className="kit-wiz__step">
-            <h2 className="kit-wiz__question">건물 규정 및 공지</h2>
+            <h2 className="kit-wiz__question">공용 와이파이가 있나요?</h2>
             <div className="kit-wiz__inputs">
               <div className="kit-wiz__label-input">
-                <label>쓰레기 / 재활용 배출 안내</label>
+                <label>와이파이 비밀번호 (선택)</label>
                 <input
                   className="kit-wiz__input"
-                  placeholder="예: 화/목 저녁 8시, 전봇대 앞"
+                  placeholder="예: U+NetXXXX / 1234567890"
+                  value={wifiCode}
+                  onChange={(e) => setWifiCode(e.target.value)}
+                />
+              </div>
+            </div>
+            <p className="kit-wiz__hint">건물에 공용 와이파이가 있다면 입력해주세요.</p>
+          </div>
+        )}
+
+        {step === 4 && (
+          <div className="kit-wiz__step">
+            <h2 className="kit-wiz__question">건물 이용 규칙을 알려주세요</h2>
+            <div className="kit-wiz__inputs">
+              <div className="kit-wiz__label-input">
+                <label>쓰레기 분리수거장 위치</label>
+                <input
+                  className="kit-wiz__input"
+                  placeholder="예: 1층 주차장 안쪽 펜스"
                   value={trashInfo}
                   onChange={(e) => setTrashInfo(e.target.value)}
                 />
               </div>
               <div className="kit-wiz__label-input">
-                <label>주차 규정</label>
+                <label>주차 규정 (선택)</label>
                 <input
                   className="kit-wiz__input"
-                  placeholder="예: 지정 주차구역 3번 사용"
+                  placeholder="예: 호실당 1대 무료, 이중주차 시 연락처 필수"
                   value={parkingInfo}
                   onChange={(e) => setParkingInfo(e.target.value)}
                 />
               </div>
               <div className="kit-wiz__label-input">
-                <label>공통 고지 사항</label>
+                <label>기타 공지사항 (선택)</label>
                 <textarea
-                  className="kit-wiz__textarea"
-                  rows={2}
-                  placeholder="예: 옥상 사용 불가, 밤 10시 이후 세탁 자제"
+                  className="kit-wiz__input kit-wiz__textarea"
+                  placeholder="예: 옥상 흡연 절대 금지, 밤 10시 이후 세탁기 사용 자제"
                   value={commonNotice}
                   onChange={(e) => setCommonNotice(e.target.value)}
                 />
@@ -307,7 +294,7 @@ export default function KitWizard() {
             </Button>
           ) : (
             <Button variant="accent" onClick={handleComplete}>
-              초대 링크 생성하기
+              전자서명 요청 링크 생성하기
             </Button>
           )}
           {step < totalSteps && (
@@ -317,6 +304,15 @@ export default function KitWizard() {
           )}
         </div>
       </div>
+
+      <NotificationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={onConfirmSend}
+        title="전자서명 요청 및 입주키트 발송"
+        tenantName={unit?.contract?.tenantName || '임차인'}
+        message={`[100집 전자서명 요청]\n\n${building?.name || ''} ${unit?.unitNumber || ''} 입주를 환영합니다!\n\n전자서명을 완료하시면 계약이 성립되며, 보증금 입금이 확인되면 공동현관 비밀번호 등 입주키트가 자동으로 공개됩니다.\n\n아래 링크를 눌러 계약 정보를 확인하고 서명을 진행해 주세요.\n${inviteLink}`}
+      />
     </div>
   );
 }

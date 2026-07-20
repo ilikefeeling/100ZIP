@@ -29,7 +29,9 @@ export default function ContractEdit() {
   const [brokerName, setBrokerName] = useState('');
   const [brokerPhone, setBrokerPhone] = useState('');
   const [brokerFee, setBrokerFee] = useState('');
-  const [isBrokerFeePaid, setIsBrokerFeePaid] = useState(false);
+  const [brokerFeeStatus, setBrokerFeeStatus] = useState('unpaid');
+  const [expectedPaidDate, setExpectedPaidDate] = useState('');
+  const [isNotificationEnabled, setIsNotificationEnabled] = useState(false);
   
   const [existingOffices, setExistingOffices] = useState([]);
 
@@ -60,7 +62,15 @@ export default function ContractEdit() {
         setBrokerName(contract.broker.name || '');
         setBrokerPhone(contract.broker.phone || '');
         setBrokerFee(contract.broker.fee?.toString() || '');
-        setIsBrokerFeePaid(contract.broker.isPaid || false);
+        
+        // Backward compatibility and new schema support
+        if (contract.broker.status) {
+          setBrokerFeeStatus(contract.broker.status);
+        } else {
+          setBrokerFeeStatus(contract.broker.isPaid ? 'paid' : 'unpaid');
+        }
+        setExpectedPaidDate(contract.broker.expectedPaidDate || '');
+        setIsNotificationEnabled(contract.broker.isNotificationEnabled || false);
       }
     }
     setLoading(false);
@@ -120,8 +130,11 @@ export default function ContractEdit() {
         name: brokerName.trim(),
         phone: brokerPhone.trim(),
         fee: parseInt(brokerFee.toString().replace(/,/g, '')) || 0,
-        isPaid: isBrokerFeePaid,
-        paidDate: isBrokerFeePaid ? new Date().toISOString() : null
+        status: brokerFeeStatus,
+        expectedPaidDate: brokerFeeStatus === 'scheduled' ? expectedPaidDate : null,
+        isNotificationEnabled: brokerFeeStatus === 'scheduled' ? isNotificationEnabled : false,
+        isPaid: brokerFeeStatus === 'paid',
+        paidDate: brokerFeeStatus === 'paid' ? new Date().toISOString() : null
       }
     });
 
@@ -356,16 +369,81 @@ export default function ContractEdit() {
               </div>
             )}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', padding: '12px', background: 'var(--color-surface)', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-            <input 
-              type="checkbox" 
-              id="isPaidEdit" 
-              checked={isBrokerFeePaid} 
-              onChange={(e) => setIsBrokerFeePaid(e.target.checked)}
-              style={{ width: '20px', height: '20px', accentColor: 'var(--color-primary)' }}
-            />
-            <label htmlFor="isPaidEdit" style={{ fontSize: '16px', fontWeight: '500', cursor: 'pointer' }}>중개수수료 지급 완료</label>
+          <div style={{ marginTop: '24px' }}>
+            <label style={{ display: 'block', fontSize: '16px', fontWeight: 'bold', marginBottom: '8px' }}>수수료 지급 상태</label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => setBrokerFeeStatus('unpaid')}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: brokerFeeStatus === 'unpaid' ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+                  background: brokerFeeStatus === 'unpaid' ? 'var(--color-primary-100)' : 'transparent',
+                  color: brokerFeeStatus === 'unpaid' ? 'var(--color-primary-800)' : 'var(--color-text-primary)',
+                  fontWeight: brokerFeeStatus === 'unpaid' ? 'bold' : '500'
+                }}
+              >
+                미지급
+              </button>
+              <button
+                type="button"
+                onClick={() => setBrokerFeeStatus('scheduled')}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: brokerFeeStatus === 'scheduled' ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+                  background: brokerFeeStatus === 'scheduled' ? 'var(--color-primary-100)' : 'transparent',
+                  color: brokerFeeStatus === 'scheduled' ? 'var(--color-primary-800)' : 'var(--color-text-primary)',
+                  fontWeight: brokerFeeStatus === 'scheduled' ? 'bold' : '500'
+                }}
+              >
+                지급 예정
+              </button>
+              <button
+                type="button"
+                onClick={() => setBrokerFeeStatus('paid')}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: brokerFeeStatus === 'paid' ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+                  background: brokerFeeStatus === 'paid' ? 'var(--color-primary-100)' : 'transparent',
+                  color: brokerFeeStatus === 'paid' ? 'var(--color-primary-800)' : 'var(--color-text-primary)',
+                  fontWeight: brokerFeeStatus === 'paid' ? 'bold' : '500'
+                }}
+              >
+                지급 완료
+              </button>
+            </div>
           </div>
+
+          {brokerFeeStatus === 'scheduled' && (
+            <div style={{ marginTop: '16px', padding: '16px', background: 'var(--color-surface)', borderRadius: '8px', border: '1px solid var(--color-primary-200)' }}>
+              <div className="form-group">
+                <label>지급 예정일</label>
+                <input
+                  type="date"
+                  value={expectedPaidDate}
+                  onChange={(e) => setExpectedPaidDate(e.target.value)}
+                />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px' }}>
+                <input 
+                  type="checkbox" 
+                  id="isNotified" 
+                  checked={isNotificationEnabled} 
+                  onChange={(e) => setIsNotificationEnabled(e.target.checked)}
+                  style={{ width: '20px', height: '20px', accentColor: 'var(--color-primary)', cursor: 'pointer' }}
+                />
+                <label htmlFor="isNotified" style={{ fontSize: '15px', fontWeight: '500', cursor: 'pointer' }}>
+                  해당 일자에 임대인 카카오톡 알림 받기
+                </label>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="bottom-button-area">

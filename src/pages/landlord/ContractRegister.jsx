@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import useAuthStore from '../../stores/authStore';
 import usePropertyStore from '../../stores/propertyStore';
 import TopBar from '../../components/TopBar';
 import NumPad from '../../components/NumPad';
@@ -18,7 +19,8 @@ export default function ContractRegister() {
   const { buildingId, unitId } = useParams();
   const getBuilding = usePropertyStore((s) => s.getBuilding);
   const addContract = usePropertyStore((s) => s.addContract);
-  const getAllBrokerOffices = usePropertyStore((s) => s.getAllBrokerOffices);
+  const buildings = usePropertyStore((s) => s.buildings);
+  const user = useAuthStore((s) => s.user);
 
   const [step, setStep] = useState(1);
   const totalSteps = 5;
@@ -26,7 +28,7 @@ export default function ContractRegister() {
   const [tenantName, setTenantName] = useState('');
   const [tenantPhone, setTenantPhone] = useState('');
   const [deposit, setDeposit] = useState('');
-  const [monthlyRent, setMonthlyRent] = useState('');
+  const [rent, setRent] = useState('');
   const [maintenanceFee, setMaintenanceFee] = useState('');
   const [rentPaymentType, setRentPaymentType] = useState('prepaid'); // prepaid, postpaid
   const [contractDate, setContractDate] = useState('');
@@ -37,17 +39,55 @@ export default function ContractRegister() {
   const [brokerName, setBrokerName] = useState('');
   const [brokerPhone, setBrokerPhone] = useState('');
   const [brokerFee, setBrokerFee] = useState('');
-  const [isBrokerFeePaid, setIsBrokerFeePaid] = useState(false);
+  const [brokerFeeStatus, setBrokerFeeStatus] = useState('unpaid'); // 'unpaid', 'scheduled', 'paid'
+  const [expectedPaidDate, setExpectedPaidDate] = useState('');
+  const [isNotificationEnabled, setIsNotificationEnabled] = useState(false);
 
-  const [existingOffices, setExistingOffices] = useState([]);
+  const [activeField, setActiveField] = useState('rent'); // 'rent' or 'maintenanceFee'
 
-  useEffect(() => {
-    const offices = getAllBrokerOffices();
-    if (!offices.includes('임대인 직접 진행')) {
-      offices.unshift('임대인 직접 진행');
+  const existingBrokers = useMemo(() => {
+    const brokers = [];
+    const seen = new Set();
+    
+    // 1. 주거래 중개사 (내 프로필에 등록된 목록 - LandlordBrokerManage 연동)
+    if (user && user.brokers) {
+      user.brokers.forEach(brk => {
+        if (brk.name && !seen.has(brk.name)) {
+          seen.add(brk.name);
+          brokers.push({ officeName: brk.name, phone: brk.phone || '' });
+        }
+      });
     }
-    setExistingOffices(offices);
-  }, [getAllBrokerOffices]);
+
+    // 2. 과거 계약에 입력했던 중개사 목록
+    (buildings || []).forEach(b => {
+      if (b.units) {
+        b.units.forEach(u => {
+          // 현재 임대중인 계약
+          if (u.contract && u.contract.broker && u.contract.broker.name) {
+            const officeName = u.contract.broker.name;
+            if (!seen.has(officeName) && officeName !== '임대인 직접 진행') {
+              seen.add(officeName);
+              brokers.push({ officeName, phone: u.contract.broker.phone || '' });
+            }
+          }
+          // 과거 계약들
+          if (u.contractHistory) {
+            u.contractHistory.forEach(c => {
+              if (c.broker && c.broker.name) {
+                const officeName = c.broker.name;
+                if (!seen.has(officeName) && officeName !== '임대인 직접 진행') {
+                  seen.add(officeName);
+                  brokers.push({ officeName, phone: c.broker.phone || '' });
+                }
+              }
+            });
+          }
+        });
+      }
+    });
+    return brokers;
+  }, [buildings, user]);
 
   const calculateEndDate = (start, years) => {
     if (!start) return '';
@@ -98,8 +138,11 @@ export default function ContractRegister() {
         name: brokerName.trim(),
         phone: brokerPhone.trim(),
         fee: parseInt(brokerFee) || 0,
-        isPaid: isBrokerFeePaid,
-        paidDate: isBrokerFeePaid ? new Date().toISOString() : null
+        status: brokerFeeStatus,
+        expectedPaidDate: brokerFeeStatus === 'scheduled' ? expectedPaidDate : null,
+        isNotificationEnabled: brokerFeeStatus === 'scheduled' ? isNotificationEnabled : false,
+        isPaid: brokerFeeStatus === 'paid',
+        paidDate: brokerFeeStatus === 'paid' ? new Date().toISOString() : null
       }
     });
     // 계약 등록 후 바로 입주키트 작성으로 유도
@@ -110,7 +153,7 @@ export default function ContractRegister() {
     switch (step) {
       case 1: return tenantName.trim().length > 0 && tenantPhone.trim().length >= 10;
       case 2: return deposit.length > 0;
-      case 3: return rent.length > 0;
+      case 3: return rent.length > 0 && maintenanceFee.length > 0;
       case 4: return startDate && endDate;
       case 5: return true; // Broker info is optional
       default: return false;
@@ -119,7 +162,16 @@ export default function ContractRegister() {
 
   return (
     <div className="page">
-      <TopBar title="계약 등록" />
+      <TopBar 
+        title="계약 등록" 
+        onBack={() => {
+          if (step > 1) {
+            setStep(step - 1);
+          } else {
+            navigate(-1);
+          }
+        }}
+      />
       <ProgressBar current={step} total={totalSteps} />
 
       <div className="page-content contract-reg">
@@ -163,66 +215,90 @@ export default function ContractRegister() {
         {step === 3 && (
           <div className="contract-reg__step" key="s3">
             <h2 className="contract-reg__question">월세와 관리비를 입력해주세요</h2>
-            <div className="contract-reg__inputs">
-              <div className="contract-reg__label-input">
-                <label>월세</label>
-                <input
-                  className="contract-reg__input tabular-nums"
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="예: 500,000"
-                  value={rent ? parseInt(rent.toString().replace(/,/g, '')).toLocaleString() : ''}
-                  onChange={(e) => {
-                    const rawValue = e.target.value.replace(/,/g, '').replace(/[^0-9]/g, '');
-                    setRent(rawValue);
-                  }}
-                  autoFocus
-                />
-                {rent && (
-                  <div className="amount-korean-helper">
-                    <span className="amount-korean-label">= 금</span>
-                    <span className="amount-korean-text">{getKoreanAmount(rent)}</span>
-                  </div>
-                )}
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+              <div 
+                onClick={() => setActiveField('rent')}
+                style={{ 
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '20px 20px', 
+                  borderRadius: '16px', 
+                  border: activeField === 'rent' ? '2px solid var(--color-primary-600)' : '1px solid var(--color-border)',
+                  background: activeField === 'rent' ? 'var(--color-primary-100)' : 'var(--color-surface)',
+                  cursor: 'pointer'
+                }}
+              >
+                <div style={{ fontSize: '24px', color: 'var(--color-text-secondary)', fontWeight: '600' }}>월세</div>
+                <div style={{ fontSize: '36px', fontWeight: 'bold', color: rent ? 'var(--color-text-primary)' : 'var(--color-text-disabled)' }}>
+                  {rent ? `${parseInt(rent).toLocaleString()}원` : '입력'}
+                </div>
               </div>
-              <div className="contract-reg__label-input">
-                <label>관리비 (선택)</label>
-                <input
-                  className="contract-reg__input tabular-nums"
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="예: 50,000"
-                  value={maintenanceFee ? parseInt(maintenanceFee.toString().replace(/,/g, '')).toLocaleString() : ''}
-                  onChange={(e) => {
-                    const rawValue = e.target.value.replace(/,/g, '').replace(/[^0-9]/g, '');
-                    setMaintenanceFee(rawValue);
-                  }}
-                />
-                {maintenanceFee && (
-                  <div className="amount-korean-helper">
-                    <span className="amount-korean-label">= 금</span>
-                    <span className="amount-korean-text">{getKoreanAmount(maintenanceFee)}</span>
-                  </div>
-                )}
-              </div>
-              <div className="contract-reg__label-input" style={{ marginTop: '16px' }}>
-                <label>월세 납부 방식</label>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button 
-                    className={`contract-reg__period-btn ${rentPaymentType === 'prepaid' ? 'active' : ''}`}
-                    onClick={() => setRentPaymentType('prepaid')}
-                  >
-                    매월 선불
-                  </button>
-                  <button 
-                    className={`contract-reg__period-btn ${rentPaymentType === 'postpaid' ? 'active' : ''}`}
-                    onClick={() => setRentPaymentType('postpaid')}
-                  >
-                    매월 후불
-                  </button>
+              <div 
+                onClick={() => setActiveField('maintenanceFee')}
+                style={{ 
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '20px 20px', 
+                  borderRadius: '16px', 
+                  border: activeField === 'maintenanceFee' ? '2px solid var(--color-primary-600)' : '1px solid var(--color-border)',
+                  background: activeField === 'maintenanceFee' ? 'var(--color-primary-100)' : 'var(--color-surface)',
+                  cursor: 'pointer'
+                }}
+              >
+                <div style={{ fontSize: '24px', color: 'var(--color-text-secondary)', fontWeight: '600' }}>관리비</div>
+                <div style={{ fontSize: '36px', fontWeight: 'bold', color: maintenanceFee ? 'var(--color-text-primary)' : 'var(--color-text-disabled)' }}>
+                  {maintenanceFee ? `${parseInt(maintenanceFee).toLocaleString()}원` : '입력'}
                 </div>
               </div>
             </div>
+
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', fontSize: '22px', fontWeight: '700', marginBottom: '16px', color: 'var(--color-text-secondary)' }}>월세 납부 방식</label>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button 
+                  onClick={() => setRentPaymentType('prepaid')}
+                  style={{ 
+                    flex: 1, 
+                    padding: '24px 20px', 
+                    borderRadius: '12px',
+                    border: rentPaymentType === 'prepaid' ? '2px solid var(--color-primary-600)' : '1px solid var(--color-border)',
+                    background: rentPaymentType === 'prepaid' ? 'var(--color-primary-100)' : 'white',
+                    color: rentPaymentType === 'prepaid' ? 'var(--color-primary-800)' : 'var(--color-text-primary)',
+                    fontWeight: rentPaymentType === 'prepaid' ? 'bold' : '500',
+                    fontSize: '22px'
+                  }}
+                >
+                  매월 선불
+                </button>
+                <button 
+                  onClick={() => setRentPaymentType('postpaid')}
+                  style={{ 
+                    flex: 1, 
+                    padding: '24px 20px', 
+                    borderRadius: '12px',
+                    border: rentPaymentType === 'postpaid' ? '2px solid var(--color-primary-600)' : '1px solid var(--color-border)',
+                    background: rentPaymentType === 'postpaid' ? 'var(--color-primary-100)' : 'white',
+                    color: rentPaymentType === 'postpaid' ? 'var(--color-primary-800)' : 'var(--color-text-primary)',
+                    fontWeight: rentPaymentType === 'postpaid' ? 'bold' : '500',
+                    fontSize: '22px'
+                  }}
+                >
+                  매월 후불
+                </button>
+              </div>
+            </div>
+
+            <NumPad
+              value={activeField === 'rent' ? rent : maintenanceFee}
+              onChange={activeField === 'rent' ? setRent : setMaintenanceFee}
+              maxLength={10}
+              placeholder={activeField === 'rent' ? '월세 입력' : '관리비 입력 (없으면 0)'}
+              unit="원"
+              isCurrency={true}
+            />
           </div>
         )}
 
@@ -284,12 +360,12 @@ export default function ContractRegister() {
               </div>
 
               {startDate && (
-                <div style={{ marginTop: '16px', padding: '16px', backgroundColor: 'var(--color-surface)', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-                  <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
+                <div style={{ marginTop: '24px', padding: '24px', backgroundColor: 'var(--color-surface)', borderRadius: '16px', border: '1px solid var(--color-border)' }}>
+                  <p style={{ fontSize: '18px', color: 'var(--color-text-secondary)', marginBottom: '12px' }}>
                     💡 <strong>월세 입금일 자동 확정</strong>
                   </p>
-                  <p style={{ fontSize: '15px', fontWeight: '500' }}>
-                    매월 <span style={{ color: 'var(--color-primary-600)', fontSize: '18px', fontWeight: '700' }}>{parseInt(startDate.split('-')[2], 10)}</span>일 
+                  <p style={{ fontSize: '22px', fontWeight: '500' }}>
+                    매월 <span style={{ color: 'var(--color-primary-600)', fontSize: '28px', fontWeight: '700' }}>{parseInt(startDate.split('-')[2], 10)}</span>일 
                     ({rentPaymentType === 'prepaid' ? '선불' : '후불'})
                   </p>
                 </div>
@@ -302,44 +378,105 @@ export default function ContractRegister() {
           <div className="contract-reg__step" key="s5">
             <h2 className="contract-reg__question">중개사무소 정보 (선택)</h2>
             <div className="contract-reg__inputs">
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <select 
-                  className="contract-reg__input"
-                  style={{ flex: 1, appearance: 'auto' }}
-                  value={existingOffices.includes(brokerName) ? brokerName : '직접 입력'}
-                  onChange={(e) => {
-                    if (e.target.value !== '직접 입력') {
-                      setBrokerName(e.target.value);
-                    } else {
-                      setBrokerName('');
-                    }
-                  }}
-                >
-                  <option value="" disabled>사무소 선택</option>
-                  {existingOffices.map((office, idx) => (
-                    <option key={idx} value={office}>{office}</option>
+              {/* 주거래 중개사 칩(버튼) 목록 */}
+              <div style={{ marginBottom: '24px' }}>
+                <p style={{ fontSize: '18px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '12px' }}>
+                  등록된 주거래 중개사 선택
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBrokerName('임대인 직접 진행');
+                      setBrokerPhone('');
+                    }}
+                    style={{
+                      padding: '16px 20px',
+                      borderRadius: '12px',
+                      border: brokerName === '임대인 직접 진행' ? '2px solid var(--color-primary-600)' : '1px solid var(--color-border)',
+                      background: brokerName === '임대인 직접 진행' ? 'var(--color-primary-100)' : 'var(--color-surface)',
+                      color: brokerName === '임대인 직접 진행' ? 'var(--color-primary-800)' : 'var(--color-text-secondary)',
+                      fontSize: '18px',
+                      fontWeight: brokerName === '임대인 직접 진행' ? '700' : '500',
+                      textAlign: 'left',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    임대인 직접 진행
+                  </button>
+                  
+                  {existingBrokers.map((brk, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setBrokerName(brk.officeName);
+                        setBrokerPhone(formatPhoneNumber(brk.phone || ''));
+                      }}
+                      style={{
+                        padding: '16px 20px',
+                        borderRadius: '12px',
+                        border: brokerName === brk.officeName ? '2px solid var(--color-primary-600)' : '1px solid var(--color-border)',
+                        background: brokerName === brk.officeName ? 'var(--color-primary-100)' : 'var(--color-surface)',
+                        color: brokerName === brk.officeName ? 'var(--color-primary-800)' : 'var(--color-text-secondary)',
+                        fontSize: '18px',
+                        fontWeight: brokerName === brk.officeName ? '700' : '500',
+                        textAlign: 'left',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      <span>{brk.officeName}</span>
+                      {brk.phone && (
+                        <span style={{ fontSize: '15px', color: brokerName === brk.officeName ? 'var(--color-primary-600)' : 'var(--color-text-tertiary)', fontWeight: 'normal' }}>
+                          {formatPhoneNumber(brk.phone)}
+                        </span>
+                      )}
+                    </button>
                   ))}
-                  <option value="직접 입력">직접 입력...</option>
-                </select>
-                
-                {(!existingOffices.includes(brokerName) || brokerName === '') && (
-                  <input
-                    className="contract-reg__input"
-                    style={{ flex: 1 }}
-                    placeholder="직접 입력"
-                    value={brokerName}
-                    onChange={(e) => setBrokerName(e.target.value)}
-                  />
-                )}
+                  
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBrokerName('');
+                      setBrokerPhone('');
+                    }}
+                    style={{
+                      padding: '16px 20px',
+                      borderRadius: '12px',
+                      border: brokerName !== '임대인 직접 진행' && existingBrokers.every(b => b.officeName !== brokerName) ? '2px solid var(--color-primary-600)' : '1px solid var(--color-border)',
+                      background: brokerName !== '임대인 직접 진행' && existingBrokers.every(b => b.officeName !== brokerName) ? 'var(--color-primary-100)' : 'var(--color-surface)',
+                      color: brokerName !== '임대인 직접 진행' && existingBrokers.every(b => b.officeName !== brokerName) ? 'var(--color-primary-800)' : 'var(--color-text-secondary)',
+                      fontSize: '18px',
+                      fontWeight: brokerName !== '임대인 직접 진행' && existingBrokers.every(b => b.officeName !== brokerName) ? '700' : '500',
+                      textAlign: 'left',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    직접 입력
+                  </button>
+                </div>
               </div>
-              <input
-                className="contract-reg__input"
-                type="tel"
-                placeholder="중개사 연락처"
-                value={brokerPhone}
-                onChange={(e) => setBrokerPhone(formatPhoneNumber(e.target.value))}
-                maxLength={13}
-              />
+
+              {/* 중개사무소 이름 및 연락처 입력 (항상 표시) */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <input
+                  className="contract-reg__input"
+                  placeholder="중개사무소 이름 (선택사항)"
+                  value={brokerName}
+                  onChange={(e) => setBrokerName(e.target.value)}
+                />
+                <input
+                  className="contract-reg__input"
+                  type="tel"
+                  placeholder="중개사 연락처 (선택사항)"
+                  value={brokerPhone}
+                  onChange={(e) => setBrokerPhone(formatPhoneNumber(e.target.value))}
+                  maxLength={13}
+                />
+              </div>
               <div className="contract-reg__label-input" style={{ marginTop: '16px' }}>
                 <label>중개수수료</label>
                 <input
@@ -360,22 +497,99 @@ export default function ContractRegister() {
                   </div>
                 )}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', padding: '12px', background: 'var(--color-surface)', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-                <input 
-                  type="checkbox" 
-                  id="isPaid" 
-                  checked={isBrokerFeePaid} 
-                  onChange={(e) => setIsBrokerFeePaid(e.target.checked)}
-                  style={{ width: '20px', height: '20px', accentColor: 'var(--color-primary)' }}
-                />
-                <label htmlFor="isPaid" style={{ fontSize: '16px', fontWeight: '500', cursor: 'pointer' }}>중개수수료 지급 완료</label>
+              <div style={{ marginTop: '24px' }}>
+                <label style={{ display: 'block', fontSize: '18px', fontWeight: '700', marginBottom: '12px', color: 'var(--color-text-secondary)' }}>수수료 지급 상태</label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setBrokerFeeStatus('unpaid')}
+                    style={{
+                      flex: 1,
+                      padding: '16px 12px',
+                      borderRadius: '12px',
+                      border: brokerFeeStatus === 'unpaid' ? '2px solid var(--color-primary-600)' : '1px solid var(--color-border)',
+                      background: brokerFeeStatus === 'unpaid' ? 'var(--color-primary-100)' : 'var(--color-surface)',
+                      color: brokerFeeStatus === 'unpaid' ? 'var(--color-primary-800)' : 'var(--color-text-primary)',
+                      fontWeight: brokerFeeStatus === 'unpaid' ? 'bold' : '500',
+                      fontSize: '18px'
+                    }}
+                  >
+                    미지급
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBrokerFeeStatus('scheduled')}
+                    style={{
+                      flex: 1,
+                      padding: '16px 12px',
+                      borderRadius: '12px',
+                      border: brokerFeeStatus === 'scheduled' ? '2px solid var(--color-primary-600)' : '1px solid var(--color-border)',
+                      background: brokerFeeStatus === 'scheduled' ? 'var(--color-primary-100)' : 'var(--color-surface)',
+                      color: brokerFeeStatus === 'scheduled' ? 'var(--color-primary-800)' : 'var(--color-text-primary)',
+                      fontWeight: brokerFeeStatus === 'scheduled' ? 'bold' : '500',
+                      fontSize: '18px'
+                    }}
+                  >
+                    지급 예정
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBrokerFeeStatus('paid')}
+                    style={{
+                      flex: 1,
+                      padding: '16px 12px',
+                      borderRadius: '12px',
+                      border: brokerFeeStatus === 'paid' ? '2px solid var(--color-primary-600)' : '1px solid var(--color-border)',
+                      background: brokerFeeStatus === 'paid' ? 'var(--color-primary-100)' : 'var(--color-surface)',
+                      color: brokerFeeStatus === 'paid' ? 'var(--color-primary-800)' : 'var(--color-text-primary)',
+                      fontWeight: brokerFeeStatus === 'paid' ? 'bold' : '500',
+                      fontSize: '18px'
+                    }}
+                  >
+                    지급 완료
+                  </button>
+                </div>
               </div>
+
+              {brokerFeeStatus === 'scheduled' && (
+                <div style={{ marginTop: '16px', padding: '20px', background: 'var(--color-surface)', borderRadius: '12px', border: '1px solid var(--color-primary-200)' }}>
+                  <div className="contract-reg__label-input">
+                    <label>지급 예정일</label>
+                    <input
+                      className="contract-reg__input"
+                      type="date"
+                      value={expectedPaidDate}
+                      onChange={(e) => setExpectedPaidDate(e.target.value)}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '16px' }}>
+                    <input 
+                      type="checkbox" 
+                      id="isNotified" 
+                      checked={isNotificationEnabled} 
+                      onChange={(e) => setIsNotificationEnabled(e.target.checked)}
+                      style={{ width: '24px', height: '24px', accentColor: 'var(--color-primary-600)', cursor: 'pointer' }}
+                    />
+                    <label htmlFor="isNotified" style={{ fontSize: '18px', fontWeight: '500', cursor: 'pointer', userSelect: 'none' }}>
+                      해당 일자에 카카오톡 알림 받기
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
 
         <div className="contract-reg__footer">
-          {step < totalSteps ? (
+          {step === 3 && activeField === 'rent' ? (
+            <Button
+              variant="primary"
+              disabled={!rent}
+              onClick={() => setActiveField('maintenanceFee')}
+            >
+              다음 (관리비 입력)
+            </Button>
+          ) : step < totalSteps ? (
             <Button
               variant="primary"
               disabled={!canProceed()}
@@ -389,7 +603,7 @@ export default function ContractRegister() {
               disabled={!canProceed()}
               onClick={handleComplete}
             >
-              다음 (입주키트 작성)
+              다음 (입주키트 작성 및 서명요청)
             </Button>
           )}
         </div>

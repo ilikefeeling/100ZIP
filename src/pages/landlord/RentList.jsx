@@ -6,6 +6,7 @@ import BottomTabBar from '../../components/BottomTabBar';
 import Card from '../../components/Card';
 import StatusBadge from '../../components/StatusBadge';
 import CurrencyDisplay from '../../components/CurrencyDisplay';
+import { exportToCSV } from '../../utils/export';
 import './RentList.css';
 
 /**
@@ -45,6 +46,22 @@ export default function RentList() {
     return true;
   });
 
+  const handleDownloadExcel = () => {
+    const exportData = filteredContracts.map((c) => ({
+      건물명: c.buildingName,
+      호실: c.unitNumber,
+      임차인: c.tenantName || '-',
+      연락처: c.tenantPhone || '-',
+      보증금: c.deposit || 0,
+      월세: c.monthlyRent || 0,
+      관리비: c.maintenanceFee || 0,
+      납부상태: c.paymentStatus,
+    }));
+    
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    exportToCSV(exportData, `수납내역_${dateStr}.csv`);
+  };
+
   return (
     <div className="page">
       <TopBar title="납부 관리" showBack={false} />
@@ -69,25 +86,46 @@ export default function RentList() {
           </div>
         </div>
 
-        {/* 필터 탭 */}
-        <div className="rent-list__tabs">
-          <button
-            className={`rent-list__tab ${filter === 'all' ? 'rent-list__tab--active' : ''}`}
-            onClick={() => setFilter('all')}
+        {/* 필터 탭 및 다운로드 버튼 */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div className="rent-list__tabs" style={{ marginBottom: 0 }}>
+            <button
+              className={`rent-list__tab ${filter === 'all' ? 'rent-list__tab--active' : ''}`}
+              onClick={() => setFilter('all')}
+            >
+              전체
+            </button>
+            <button
+              className={`rent-list__tab ${filter === 'unpaid' ? 'rent-list__tab--active' : ''}`}
+              onClick={() => setFilter('unpaid')}
+            >
+              미납/대기
+            </button>
+            <button
+              className={`rent-list__tab ${filter === 'paid' ? 'rent-list__tab--active' : ''}`}
+              onClick={() => setFilter('paid')}
+            >
+              납부완료
+            </button>
+          </div>
+          <button 
+            onClick={handleDownloadExcel}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '6px 12px',
+              backgroundColor: '#fff',
+              border: '1px solid var(--color-border)',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 500,
+              color: 'var(--color-text)',
+              cursor: 'pointer',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+            }}
           >
-            전체
-          </button>
-          <button
-            className={`rent-list__tab ${filter === 'unpaid' ? 'rent-list__tab--active' : ''}`}
-            onClick={() => setFilter('unpaid')}
-          >
-            미납/대기
-          </button>
-          <button
-            className={`rent-list__tab ${filter === 'paid' ? 'rent-list__tab--active' : ''}`}
-            onClick={() => setFilter('paid')}
-          >
-            납부완료
+            <span style={{ fontSize: '16px' }}>⬇</span> 엑셀 다운로드
           </button>
         </div>
 

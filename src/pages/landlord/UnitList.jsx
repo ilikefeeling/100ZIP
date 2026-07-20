@@ -45,16 +45,17 @@ export default function UnitList() {
             <button 
               onClick={() => navigate(`/landlord/buildings/${buildingId}/settings`)} 
               style={{
-                background: 'var(--color-surface-dim)',
-                border: '1px solid var(--color-border)',
+                background: 'var(--color-primary-100)',
+                border: '1px solid var(--color-primary-600)',
                 borderRadius: '16px',
-                fontSize: '18px',
-                fontWeight: '600',
-                color: 'var(--color-text-secondary)',
-                padding: '4px 12px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                color: 'var(--color-primary-900)',
+                padding: '6px 16px',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
                 flexShrink: 0,
+                boxShadow: '0 2px 6px rgba(30,58,95,0.15)'
               }}
             >
               건물 상세

@@ -58,5 +58,56 @@ service cloud.firestore {
         )
       );
     }
+
+    // 사용자의 officeId를 조회하는 헬퍼 함수
+    function getUserOfficeId() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.officeId;
+    }
+
+    // 3. brokerOffices 컬렉션 (중개사무소 정보)
+    match /brokerOffices/{officeId} {
+      // 생성: 인증된 사용자(중개사 인증 완료)
+      allow create: if isAppChecked() && request.auth != null;
+      // 읽기: 해당 사무소의 대표이거나 소속 직원
+      allow read: if isAppChecked() && request.auth != null && (
+        resource.data.masterUserId == request.auth.uid ||
+        request.auth.uid in resource.data.staffIds
+      );
+      // 수정: 대표 중개사만
+      allow update: if isAppChecked() && request.auth != null && resource.data.masterUserId == request.auth.uid;
+      // 삭제: 대표 중개사만
+      allow delete: if isAppChecked() && request.auth != null && resource.data.masterUserId == request.auth.uid;
+    }
+
+    // 4. brokerClients 컬렉션 (임대인-중개사 관계)
+    match /brokerClients/{clientId} {
+      // 생성: 인증된 사용자 (중개사)
+      allow create: if isAppChecked() && request.auth != null;
+      // 읽기: 해당 officeId 소속 중개사 또는 해당 임대인 본인
+      allow read: if isAppChecked() && request.auth != null && (
+        resource.data.officeId == getUserOfficeId() ||
+        resource.data.landlordId == request.auth.uid
+      );
+      // 수정/삭제: 해당 officeId 소속 중개사만
+      allow update, delete: if isAppChecked() && request.auth != null && resource.data.officeId == getUserOfficeId();
+    }
+
+    // 5. listings 컬렉션 (매물 정보)
+    match /listings/{listingId} {
+      // 생성: 인증된 사용자 (임대인이 방 내놓기 또는 중개사가 직접 등록)
+      allow create: if isAppChecked() && request.auth != null;
+      // 읽기: 해당 officeId 소속 중개사 또는 해당 임대인
+      allow read: if isAppChecked() && request.auth != null && (
+        resource.data.officeId == getUserOfficeId() ||
+        resource.data.landlordId == request.auth.uid
+      );
+      // 수정: 해당 officeId 소속 중개사 또는 해당 임대인
+      allow update: if isAppChecked() && request.auth != null && (
+        resource.data.officeId == getUserOfficeId() ||
+        resource.data.landlordId == request.auth.uid
+      );
+      // 삭제: 해당 officeId 소속 중개사만
+      allow delete: if isAppChecked() && request.auth != null && resource.data.officeId == getUserOfficeId();
+    }
   }
 }
