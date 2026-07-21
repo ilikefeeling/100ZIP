@@ -28,33 +28,70 @@ export default function BrokerRegister() {
       return;
     }
 
+    const cleanBusinessNum = businessNum.replace(/[^0-9]/g, '');
+    if (cleanBusinessNum.length !== 10) {
+      alert('사업자등록번호 10자리를 정확히 입력해주세요.');
+      return;
+    }
+
     setIsLoading(true);
 
-    // TODO: [LAUNCH] 서비스 출시 시 공공데이터포털 국세청 사업자등록상태조회 API 연동으로 교체 필수
-    // 현재는 테스트 환경을 위해 무조건 승인 처리하는 Mock 로직
-    setTimeout(async () => {
-      try {
-        // 1. Firestore에 brokerOffices 문서 생성 + users 문서에 officeId 기록
-        const officeId = await createOffice(user.uid, officeName, businessNum);
-
-        // 2. 유저 프로필 업데이트 (인증 완료, 역할 설정)
-        await updateUserProfile({
-          isBrokerVerified: true,
-          businessNumber: businessNum,
-          officeName: officeName,
-          brokerRole: 'broker_master', // 최초 가입자는 대표(마스터)로 설정
-          officeId: officeId
-        });
-        
-        alert('사업자 인증이 완료되었습니다!\n이제 100ZIP 중개사 백오피스를 이용하실 수 있습니다.');
-        navigate('/broker/home', { replace: true });
-      } catch (error) {
-        console.error('인증 처리 중 오류:', error);
-        alert('인증 처리 중 오류가 발생했습니다.');
-      } finally {
-        setIsLoading(false);
+    try {
+      // 공공데이터포털 국세청 사업자등록상태조회 API 연동
+      const API_KEY = import.meta.env.VITE_ODCLOUD_API_KEY;
+      
+      if (!API_KEY) {
+        throw new Error('API 키가 설정되지 않았습니다. (.env에 VITE_ODCLOUD_API_KEY 추가 필요)');
       }
-    }, 1500);
+
+      const response = await fetch(`https://api.odcloud.kr/api/nts-businessman/v1/status?serviceKey=${API_KEY}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          b_no: [cleanBusinessNum]
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('국세청 서버와 통신할 수 없습니다.');
+      }
+
+      const result = await response.json();
+      
+      if (!result.data || result.data.length === 0) {
+        throw new Error('조회된 사업자 정보가 없습니다.');
+      }
+
+      const businessData = result.data[0];
+      
+      // b_stt_cd: 01(계속사업자), 02(휴업자), 03(폐업자)
+      if (businessData.b_stt_cd !== '01') {
+        throw new Error(`유효하지 않은 사업자입니다. (상태: ${businessData.b_stt || '알 수 없음'})`);
+      }
+
+      // 1. Firestore에 brokerOffices 문서 생성 + users 문서에 officeId 기록
+      const officeId = await createOffice(user.uid, officeName, businessNum);
+
+      // 2. 유저 프로필 업데이트 (인증 완료, 역할 설정)
+      await updateUserProfile({
+        isBrokerVerified: true,
+        businessNumber: businessNum,
+        officeName: officeName,
+        brokerRole: 'broker_master', // 최초 가입자는 대표(마스터)로 설정
+        officeId: officeId
+      });
+      
+      alert('사업자 인증이 완료되었습니다!\n이제 100ZIP 중개사 백오피스를 이용하실 수 있습니다.');
+      navigate('/broker/home', { replace: true });
+    } catch (error) {
+      console.error('인증 처리 중 오류:', error);
+      alert(error.message || '인증 처리 중 오류가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

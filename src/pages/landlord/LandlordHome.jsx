@@ -84,6 +84,26 @@ export default function LandlordHome() {
               <span>설명서</span>
             </button>
             <button
+              onClick={() => navigate('/support')}
+              style={{
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '20px',
+                padding: '8px 12px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                color: 'var(--color-text-primary)'
+              }}
+              aria-label="고객센터"
+            >
+              <span>🎧</span>
+              <span>고객센터</span>
+            </button>
+            <button
               onClick={() => {
                 const currentScale = document.documentElement.dataset.fontScale || 'normal';
                 const nextScale = currentScale === 'normal' ? 'large' : currentScale === 'large' ? 'xlarge' : 'normal';

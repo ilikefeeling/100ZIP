@@ -18,6 +18,7 @@ const Onboarding = lazy(() => import('./pages/common/Onboarding'));
 const Terms = lazy(() => import('./pages/common/Terms'));
 const Privacy = lazy(() => import('./pages/common/Privacy'));
 const UserManual = lazy(() => import('./pages/common/UserManual'));
+const CustomerService = lazy(() => import('./pages/common/CustomerService'));
 
 // Landlord pages
 const LandlordHome = lazy(() => import('./pages/landlord/LandlordHome'));
@@ -109,6 +110,7 @@ export default function App() {
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/manual" element={<UserManual />} />
+            <Route path="/support" element={<CustomerService />} />
             <Route path="/invite/:buildingId/:unitId" element={<GuestInvite />} />
             <Route path="/share/broker/:buildingId" element={<BrokerShareView />} />
             <Route path="/invite/broker/:officeId" element={<BrokerInviteLanding />} />
