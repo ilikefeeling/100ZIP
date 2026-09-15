@@ -14,13 +14,13 @@ export default function CustomerService() {
 
         <div className="cs-card">
           <h3>이메일 문의</h3>
-          <p className="cs-email">ilikepeople@icloud.com</p>
+          <p className="cs-email">aihyunku@gmail.com</p>
           <p className="cs-desc">
             답변은 영업일 기준 1~2일 내에 작성하신 이메일로 회신해 드립니다.
           </p>
           <button 
             className="cs-button"
-            onClick={() => window.location.href = 'mailto:ilikepeople@icloud.com'}
+            onClick={() => window.location.href = 'mailto:aihyunku@gmail.com?subject=[100집 문의] 서비스 관련 문의드립니다.'}
           >
             이메일 앱 열기
           </button>

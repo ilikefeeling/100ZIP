@@ -38,7 +38,28 @@ export default function RoleSelect() {
           <span style={{ fontSize: '24px', fontWeight: '700', color: 'var(--color-text-primary)' }}>관리</span>
         </div>
         <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', letterSpacing: '1px', fontWeight: '600', margin: 0 }}>100ZIP</p>
-        <p style={{ fontSize: '18px', color: 'var(--color-text-primary)', marginTop: '24px', fontWeight: 'bold' }}>어떤 역할로 시작할까요?</p>
+        
+        {/* 유튜브 쇼츠 홍보 영상 임베드 */}
+        <div style={{ marginTop: '32px', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <p style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--color-primary-600)', marginBottom: '12px' }}>📺 1분 만에 알아보는 100집</p>
+          <iframe 
+            src="https://www.youtube.com/embed/W5MVwqBEhoM" 
+            title="100집(100ZIP) 소개 영상" 
+            frameBorder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowFullScreen
+            style={{ 
+              width: '100%', 
+              maxWidth: '300px', 
+              aspectRatio: '9/16', 
+              borderRadius: '16px', 
+              boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+              background: '#000'
+            }}
+          ></iframe>
+        </div>
+
+        <p style={{ fontSize: '18px', color: 'var(--color-text-primary)', marginTop: '40px', fontWeight: 'bold' }}>어떤 역할로 시작할까요?</p>
       </div>
 
       <div className="role-select">
@@ -73,6 +94,24 @@ export default function RoleSelect() {
           <span className="role-select__label">중개사예요</span>
           <span className="role-select__desc">공실 정보와 중개<br/>의뢰를 확인해요</span>
         </Card>
+      </div>
+
+      {/* 고객 문의 (이메일) 섹션 */}
+      <div style={{ marginTop: 'auto', padding: '40px 0 24px', textAlign: 'center' }}>
+        <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
+          서비스 이용에 궁금한 점이 있으신가요?
+        </p>
+        <a 
+          href="mailto:aihyunku@gmail.com?subject=[100집 문의] 서비스 관련 문의드립니다."
+          style={{ 
+            display: 'inline-flex', alignItems: 'center', gap: '6px', 
+            fontSize: '14px', fontWeight: 'bold', color: 'var(--color-primary-600)',
+            textDecoration: 'none', padding: '10px 16px', borderRadius: '24px',
+            background: 'var(--color-primary-50)'
+          }}
+        >
+          ✉️ aihyunku@gmail.com 으로 문의하기
+        </a>
       </div>
     </div>
   );
